@@ -1,0 +1,261 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { PropertyCard } from '../components/PropertyCard';
+import { SearchSettingsDialog } from '../components/SearchSettingsDialog';
+import { BottomNav } from '../components/BottomNav';
+import { ProfileVault } from '../components/ProfileVault';
+import { mockProperties } from '../data/mockProperties';
+import { Property, SearchSettings, UserProfile } from '../types/property';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { Settings2, Send, CheckCircle2, Trash2 } from 'lucide-react';
+
+export default function Home() {
+  const [currentTab, setCurrentTab] = useState<'discover' | 'saved' | 'profile'>('discover');
+  const [showSettings, setShowSettings] = useState(false);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Local Storage State for GDPR Compliance
+  const [savedProperties, setSavedProperties] = useLocalStorage<Property[]>('immo_saved', []);
+  const [profile, setProfile] = useLocalStorage<UserProfile>('immo_profile', {
+    name: '',
+    email: '',
+    phone: '',
+    income: 0,
+    householdSize: 1,
+    hasPets: false,
+    applicationText: 'Sehr geehrte Damen und Herren,\n\nhiermit bewerbe ich mich um die angebotene Immobilie. Alle Unterlagen (Gehalt, Schufa) liegen vollständig vor und können sofort nachgereicht werden.\n\nIch freue mich über einen Besichtigungstermin.\n\nMit freundlichen Grüßen'
+  });
+  const [settings, setSettings] = useLocalStorage<SearchSettings>('immo_settings', {
+    intent: 'rent',
+    location: '',
+    maxPrice: 2000,
+    minRooms: 2,
+    minSpace: 50,
+    radius: 10
+  });
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [appliedIds, setAppliedIds] = useState<string[]>([]);
+
+  // Fetch properties from backend
+  useEffect(() => {
+    const fetchLiveProperties = async () => {
+      if (!settings.location) {
+        setProperties([]);
+        return;
+      }
+      
+      setIsLoading(true);
+      setError('');
+      
+      try {
+        const res = await fetch(`/api/properties?location=${encodeURIComponent(settings.location)}&intent=${settings.intent}`);
+        if (!res.ok) {
+           throw new Error(await res.text());
+        }
+        const data = await res.json();
+        
+        // Apply frontend fine grain filtering
+        const filtered = (data.properties || []).filter((p: Property) => {
+          if (p.price > settings.maxPrice) return false;
+          if (p.rooms < settings.minRooms) return false;
+          if (p.livingSpace < settings.minSpace) return false;
+          return true;
+        });
+
+        setProperties(filtered);
+      } catch (err: any) {
+        console.error(err);
+        setError('Leider wurden wir vom Immo-Portal für diese Region momentan blockiert oder der Ort existiert nicht.');
+        setProperties([]);
+      } finally {
+        setIsLoading(false);
+        setCurrentIndex(0);
+      }
+    };
+
+    fetchLiveProperties();
+  }, [settings]);
+
+  const handleSwipe = (id: string, direction: 'left' | 'right') => {
+    if (direction === 'right') {
+      const property = properties[currentIndex];
+      if (property && !savedProperties.find(p => p.id === property.id)) {
+        setSavedProperties([...savedProperties, property]);
+      }
+    }
+    setTimeout(() => {
+      setCurrentIndex(prev => prev + 1);
+    }, 200); // Wait for animation
+  };
+
+  const handleApply = (id: string) => {
+    // Simulated 1-click apply process
+    setAppliedIds([...appliedIds, id]);
+  };
+
+  const renderDiscover = () => {
+    if (isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center h-[70vh] text-center px-8">
+           <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-6"></div>
+           <h2 className="text-xl font-bold text-white mb-2">Scanne Portale...</h2>
+           <p className="text-slate-400 text-sm">Suche nach Inhalten in {settings.location} (Live)</p>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="flex flex-col items-center justify-center h-[70vh] text-center px-8">
+           <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-6 text-red-500 font-bold text-2xl">!</div>
+           <h2 className="text-xl font-bold text-white mb-2">Fehler beim Abruf</h2>
+           <p className="text-slate-400 text-sm">{error}</p>
+           <button onClick={() => setShowSettings(true)} className="mt-8 px-6 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold">Filter ändern</button>
+        </div>
+      );
+    }
+
+    if (properties.length === 0 || currentIndex >= properties.length) {
+      return (
+        <div className="flex flex-col items-center justify-center h-[70vh] text-center px-8">
+          <div className="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mb-6 border border-slate-700">
+             <Settings2 className="w-10 h-10 text-emerald-400" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">Keine Inserate mehr</h2>
+          <p className="text-slate-400 text-sm">Passe deine Sucheinstellungen an oder warte auf neue Angebote (Echtzeit-Push in Phase 2).</p>
+          <button 
+            onClick={() => setShowSettings(true)}
+            className="mt-8 px-6 py-3 bg-emerald-500/20 text-emerald-400 rounded-xl font-bold border border-emerald-500/30"
+          >
+            Filter anpassen
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative w-full h-full mt-4">
+        <div className="absolute inset-0 flex justify-center">
+          {/* Render cards inverted so the current index is on top */}
+          {[...properties]
+            .slice(currentIndex, currentIndex + 3) // Only render top 3 for performance
+            .reverse()
+            .map((property, idx, arr) => {
+              const isTop = idx === arr.length - 1;
+              return (
+                <div key={property.id} className="absolute inset-0 w-full flex justify-center pointer-events-none">
+                  <div className={`w-full max-w-[90%] transition-transform duration-300 ${isTop ? 'pointer-events-auto scale-100 translate-y-0 z-20' : 'scale-95 -translate-y-4 opacity-50 z-10'}`}>
+                    {isTop && (
+                      <PropertyCard 
+                        property={property} 
+                        onSwipe={handleSwipe}
+                        intent={settings.intent}
+                      />
+                    )}
+                    {!isTop && (
+                       // Mock background cards
+                       <div className="w-full h-[70vh] p-4">
+                         <div className="w-full h-full rounded-3xl glass backdrop-blur-sm border-white/5 bg-slate-800/40" />
+                       </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderSaved = () => (
+    <div className="h-full overflow-y-auto pb-32 px-6 pt-8 hide-scrollbar">
+      <h1 className="text-3xl font-black text-white mb-6">Gemerkt ({savedProperties.length})</h1>
+      {savedProperties.length === 0 ? (
+        <p className="text-slate-400 text-center mt-20">Noch keine Immobilien favorisiert.</p>
+      ) : (
+        <div className="space-y-4">
+          {savedProperties.map(property => {
+            const hasApplied = appliedIds.includes(property.id);
+            return (
+              <div key={property.id} className="bg-slate-800/60 p-4 rounded-2xl border border-slate-700 backdrop-blur-md">
+                <div className="flex gap-4">
+                  <img src={property.imageUrl} className="w-20 h-20 rounded-xl object-cover" alt="" />
+                  <div className="flex-1">
+                    <h3 className="text-white font-bold text-sm line-clamp-1">{property.title}</h3>
+                    <p className="text-emerald-400 font-bold mt-1">{property.price.toLocaleString()} €</p>
+                    <p className="text-slate-400 text-xs mt-1 truncate">{property.source}</p>
+                  </div>
+                </div>
+                
+                <div className="mt-4 flex gap-2">
+                  <button 
+                    onClick={() => {
+                      if(!hasApplied) handleApply(property.id);
+                    }}
+                    className={`flex-1 p-3 flex justify-center text-sm items-center gap-2 rounded-xl font-bold transition-all ${
+                      hasApplied 
+                        ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-500/30' 
+                        : 'bg-emerald-500 text-slate-900 hover:bg-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+                    }`}
+                  >
+                    {hasApplied ? <CheckCircle2 className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                    {hasApplied ? 'Angefragt' : '1-Klick Bewerbung'}
+                  </button>
+                  <button 
+                    onClick={() => setSavedProperties(savedProperties.filter(p => p.id !== property.id))}
+                    className="p-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl border border-slate-600 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="h-full w-full relative flex flex-col pt-8">
+      {/* Header */}
+      {currentTab === 'discover' && (
+        <div className="px-8 pb-4 flex justify-between items-center z-40">
+          <div>
+            <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 uppercase tracking-widest">
+              Immo<span className="text-white">Pulse</span>
+            </h1>
+          </div>
+          <button 
+            onClick={() => setShowSettings(true)}
+            className="p-2.5 glass rounded-full text-slate-300 hover:text-white transition-colors"
+          >
+            <Settings2 className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      {/* Main Content Area */}
+      <div className="flex-1 relative overflow-hidden">
+        {currentTab === 'discover' && renderDiscover()}
+        {currentTab === 'saved' && renderSaved()}
+        {currentTab === 'profile' && <ProfileVault profile={profile} setProfile={setProfile} />}
+      </div>
+
+      <BottomNav currentTab={currentTab} setTab={setCurrentTab} />
+
+      {/* Settings Dialog Overlay */}
+      {showSettings && (
+        <SearchSettingsDialog 
+          settings={settings} 
+          setSettings={setSettings} 
+          onClose={() => setShowSettings(false)} 
+        />
+      )}
+    </div>
+  );
+}
