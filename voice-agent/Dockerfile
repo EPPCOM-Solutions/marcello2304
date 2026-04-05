@@ -18,7 +18,8 @@ COPY constants.py .
 COPY local_whisper_stt.py .
 
 ENV PYTHONUNBUFFERED=1
-ENV OLLAMA_MODEL=qwen3-nothink:latest
+ENV OLLAMA_MODEL=qwen3-voice:latest
 ENV CARTESIA_MODEL=sonic-2
+ENV WHISPER_MODEL=small
 
 CMD ["python3", "agent.py", "start"]
