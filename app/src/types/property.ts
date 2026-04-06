@@ -5,12 +5,19 @@ export interface Property {
   title: string;
   address: string;
   price: number; // Purchase price or Kaltmiete
-  livingSpace: number;
-  rooms: number;
+  livingSpace: number | null; // Nullable for when scraper fails so we don't drop the ad
+  rooms: number | null; // Nullable
   imageUrl: string;
-  source: 'ImmoScout24' | 'Immowelt' | 'Kleinanzeigen';
+  url?: string; // Original portal link
+  imageUrls?: string[]; // Detailed gallery
+  source: 'ImmoScout24' | 'Immowelt' | 'Kleinanzeigen' | string;
   // For investment logic
   estimatedRent?: number; // Yearly cold rent estimation if buy
+  priorityScore?: number; // KI Score
+  competitionScore?: number; // Mitbewerberdichte-Score (1-10)
+  priceTrend?: 'new' | 'steady' | 'reduced' | 'hot'; // Preishistorie/Trend
+  notes?: string;
+  checklist?: Record<string, boolean>; // For visit checks
 }
 
 export interface UserProfile {
@@ -21,6 +28,7 @@ export interface UserProfile {
   householdSize: number;
   hasPets: boolean;
   applicationText: string;
+  portalLogins?: Record<string, { username?: string, password?: string }>;
 }
 
 export interface SearchSettings {

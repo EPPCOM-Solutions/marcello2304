@@ -93,6 +93,43 @@ export const ProfileVault: React.FC<Props> = ({ profile, setProfile }) => {
           />
         </div>
 
+        <div className="pt-4 border-t border-slate-700/50">
+          <h3 className="text-emerald-400 font-bold text-sm mb-4">Verknüpfte Portale für 1-Klick-Bewerbung</h3>
+          
+          {['Kleinanzeigen', 'ImmoScout24', 'Immowelt'].map(portal => {
+            const key = portal.toLowerCase();
+            const portalData = profile.portalLogins?.[key] || { username: '', password: '' };
+            
+            return (
+              <div key={portal} className="mb-4 bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
+                <label className="text-sm font-bold text-slate-300 mb-3 block">{portal} Login</label>
+                <div className="space-y-3">
+                  <input 
+                    type="text" 
+                    value={portalData.username || ''}
+                    onChange={e => {
+                      const newLogins = { ...profile.portalLogins, [key]: { ...portalData, username: e.target.value } };
+                      setProfile({...profile, portalLogins: newLogins});
+                    }}
+                    className="w-full bg-slate-900/50 border border-slate-700 focus:border-emerald-500 rounded-lg p-3 text-sm text-white outline-none transition-all"
+                    placeholder="E-Mail oder Benutzername"
+                  />
+                  <input 
+                    type="password" 
+                    value={portalData.password || ''}
+                    onChange={e => {
+                      const newLogins = { ...profile.portalLogins, [key]: { ...portalData, password: e.target.value } };
+                      setProfile({...profile, portalLogins: newLogins});
+                    }}
+                    className="w-full bg-slate-900/50 border border-slate-700 focus:border-emerald-500 rounded-lg p-3 text-sm text-white outline-none transition-all"
+                    placeholder="Passwort"
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         <button 
           onClick={handleSave}
           className={`w-full p-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${saved ? 'bg-emerald-500 text-slate-900' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}

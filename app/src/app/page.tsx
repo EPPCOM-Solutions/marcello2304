@@ -58,15 +58,33 @@ export default function Home() {
         }
         const data = await res.json();
         
-        // Apply frontend fine grain filtering
+        // Apply frontend fine grain filtering, keeping items where scraper couldn't resolve details (null)
         const filtered = (data.properties || []).filter((p: Property) => {
           if (p.price > settings.maxPrice) return false;
-          if (p.rooms < settings.minRooms) return false;
-          if (p.livingSpace < settings.minSpace) return false;
+          if (p.rooms !== null && p.rooms < settings.minRooms) return false;
+          if (p.livingSpace !== null && p.livingSpace < settings.minSpace) return false;
           return true;
         });
 
-        setProperties(filtered);
+        // Smart Alerts: Bewertungs-API aufrufen (KI Scoring)
+        let finalProperties = filtered;
+        try {
+          const evalRes = await fetch('/api/evaluate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ properties: filtered, profile })
+          });
+          if (evalRes.ok) {
+            const evalData = await evalRes.json();
+            if (evalData.properties) {
+              finalProperties = evalData.properties;
+            }
+          }
+        } catch (e) {
+          console.error("Evaluation failed", e);
+        }
+
+        setProperties(finalProperties);
       } catch (err: any) {
         console.error(err);
         setError('Leider wurden wir vom Immo-Portal für diese Region momentan blockiert oder der Ort existiert nicht.');
@@ -92,9 +110,35 @@ export default function Home() {
     }, 200); // Wait for animation
   };
 
-  const handleApply = (id: string) => {
-    // Simulated 1-click apply process
-    setAppliedIds([...appliedIds, id]);
+  const handleApply = async (id: string) => {
+    const property = savedProperties.find(p => p.id === id);
+    if (!property) return;
+
+    try {
+      const res = await fetch('/api/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ property, profile })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || data.error || 'Fehler bei der Bewerbung');
+        return;
+      }
+      alert(data.message);
+      setAppliedIds([...appliedIds, id]);
+    } catch (e) {
+      alert('Netzwerkfehler');
+    }
+  };
+
+  const exportPDF = () => {
+    // Einfacher MVP Export
+    window.print();
+  };
+
+  const updateNotes = (id: string, notes: string) => {
+    setSavedProperties(savedProperties.map(p => p.id === id ? { ...p, notes } : p));
   };
 
   const renderDiscover = () => {
@@ -173,7 +217,14 @@ export default function Home() {
 
   const renderSaved = () => (
     <div className="h-full overflow-y-auto pb-32 px-6 pt-8 hide-scrollbar">
-      <h1 className="text-3xl font-black text-white mb-6">Gemerkt ({savedProperties.length})</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-black text-white">Gemerkt ({savedProperties.length})</h1>
+        {savedProperties.length > 0 && (
+          <button onClick={exportPDF} className="px-3 py-1.5 bg-slate-800 text-emerald-400 text-xs font-bold rounded-lg border border-slate-700">
+            PDF Export
+          </button>
+        )}
+      </div>
       {savedProperties.length === 0 ? (
         <p className="text-slate-400 text-center mt-20">Noch keine Immobilien favorisiert.</p>
       ) : (
@@ -203,7 +254,7 @@ export default function Home() {
                     }`}
                   >
                     {hasApplied ? <CheckCircle2 className="w-4 h-4" /> : <Send className="w-4 h-4" />}
-                    {hasApplied ? 'Angefragt' : '1-Klick Bewerbung'}
+                    {hasApplied ? 'Bewerbung versendet' : 'Bewerbung senden'}
                   </button>
                   <button 
                     onClick={() => setSavedProperties(savedProperties.filter(p => p.id !== property.id))}
@@ -211,6 +262,16 @@ export default function Home() {
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
+                </div>
+                {/* Notes Section */}
+                <div className="mt-3">
+                   <textarea
+                     className="w-full bg-slate-900/50 text-slate-300 text-xs p-2 rounded-lg border border-slate-700 focus:border-emerald-500 outline-none"
+                     rows={2}
+                     placeholder="Notizen / Checkliste für Besichtigung..."
+                     value={property.notes || ''}
+                     onChange={(e) => updateNotes(property.id, e.target.value)}
+                   />
                 </div>
               </div>
             );
