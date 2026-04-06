@@ -33,9 +33,10 @@ export interface UserProfile {
 
 export interface SearchSettings {
   intent: SearchIntent;
-  location: string;
+  locations: string[]; // Up to 3 locations
   maxPrice: number;
   minRooms: number;
   minSpace: number;
   radius: number;
+  provisionsfrei?: boolean; // Immosuchmaschine feature: exclusively private/no fee
 }

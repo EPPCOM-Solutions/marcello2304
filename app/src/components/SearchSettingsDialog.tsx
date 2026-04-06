@@ -11,11 +11,27 @@ interface Props {
 }
 
 export const SearchSettingsDialog: React.FC<Props> = ({ settings, setSettings, onClose }) => {
-  const [localSettings, setLocalSettings] = useState<SearchSettings>(settings);
+  const [localSettings, setLocalSettings] = useState<SearchSettings>({
+    ...settings,
+    locations: settings.locations || (settings as any).location ? [(settings as any).location] : []
+  });
+  const [newLocation, setNewLocation] = useState('');
 
   const handleSave = () => {
     setSettings(localSettings);
     onClose();
+  };
+
+  const addLocation = () => {
+    const loc = newLocation.trim();
+    if (loc && localSettings.locations.length < 3 && !localSettings.locations.includes(loc)) {
+      setLocalSettings({...localSettings, locations: [...localSettings.locations, loc]});
+      setNewLocation('');
+    }
+  };
+
+  const removeLocation = (locToRemove: string) => {
+    setLocalSettings({...localSettings, locations: localSettings.locations.filter(l => l !== locToRemove)});
   };
 
   return (
@@ -52,14 +68,39 @@ export const SearchSettingsDialog: React.FC<Props> = ({ settings, setSettings, o
         </div>
 
         <div>
-          <label className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-3 block">Ort / Bereich</label>
-          <input 
-            type="text"
-            value={localSettings.location || ''}
-            onChange={e => setLocalSettings({...localSettings, location: e.target.value})}
-            placeholder="Stadt, PLZ oder Stadtteil..."
-            className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white focus:border-emerald-500 outline-none placeholder-slate-500"
-          />
+          <div className="flex justify-between items-end mb-3">
+             <label className="text-xs uppercase tracking-wider text-slate-400 font-bold block">Orte / Regionen</label>
+             <span className="text-xs text-slate-500">{localSettings.locations.length}/3 Orte</span>
+          </div>
+          
+          {localSettings.locations.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {localSettings.locations.map(loc => (
+                <div key={loc} className="flex items-center gap-1 bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-500/30 text-sm font-bold">
+                  {loc}
+                  <button onClick={() => removeLocation(loc)} className="p-0.5 hover:bg-emerald-500/30 rounded-full transition-colors">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {localSettings.locations.length < 3 && (
+            <div className="flex gap-2">
+              <input 
+                type="text"
+                value={newLocation}
+                onChange={e => setNewLocation(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addLocation()}
+                placeholder="Stadt, PLZ oder Stadtteil..."
+                className="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-3 text-white focus:border-emerald-500 outline-none placeholder-slate-500"
+              />
+              <button onClick={addLocation} className="px-4 py-3 bg-slate-700 hover:bg-emerald-500 hover:text-slate-950 text-emerald-400 transition-colors font-bold rounded-xl border border-slate-600">
+                Hinzufügen
+              </button>
+            </div>
+          )}
         </div>
 
         <div>
@@ -97,6 +138,19 @@ export const SearchSettingsDialog: React.FC<Props> = ({ settings, setSettings, o
               className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white focus:border-emerald-500 outline-none"
             />
           </div>
+        </div>
+
+        <div className="border-t border-slate-700/50 pt-5 mt-2">
+           <label className="flex items-center gap-3 cursor-pointer">
+             <div className={`w-6 h-6 rounded border flex items-center justify-center transition-colors ${localSettings.provisionsfrei ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-800 border-slate-600'}`}>
+                {localSettings.provisionsfrei && <svg className="w-4 h-4 text-slate-950" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
+             </div>
+             <div>
+               <div className="text-sm font-bold text-white uppercase tracking-wider">Nur Provisionsfrei / Von Privat</div>
+               <div className="text-xs text-slate-400">Blende Inserate mit offensichtlicher Maklerprovision aus.</div>
+             </div>
+             <input type="checkbox" className="hidden" checked={!!localSettings.provisionsfrei} onChange={e => setLocalSettings({...localSettings, provisionsfrei: e.target.checked})} />
+           </label>
         </div>
       </div>
       

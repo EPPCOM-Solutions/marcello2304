@@ -29,11 +29,12 @@ export default function Home() {
   });
   const [settings, setSettings] = useLocalStorage<SearchSettings>('immo_settings', {
     intent: 'rent',
-    location: '',
+    locations: [],
     maxPrice: 2000,
     minRooms: 2,
     minSpace: 50,
-    radius: 10
+    radius: 10,
+    provisionsfrei: false
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +44,7 @@ export default function Home() {
   // Fetch properties from backend
   useEffect(() => {
     const fetchLiveProperties = async () => {
-      if (!settings.location) {
+      if (!settings.locations || settings.locations.length === 0) {
         setProperties([]);
         return;
       }
@@ -52,7 +53,8 @@ export default function Home() {
       setError('');
       
       try {
-        const res = await fetch(`/api/properties?location=${encodeURIComponent(settings.location)}&intent=${settings.intent}`);
+        const locationsQuery = encodeURIComponent(settings.locations.join(','));
+        const res = await fetch(`/api/properties?locations=${locationsQuery}&intent=${settings.intent}&provisionsfrei=${settings.provisionsfrei ? 'true' : 'false'}`);
         if (!res.ok) {
            throw new Error(await res.text());
         }
@@ -145,9 +147,9 @@ export default function Home() {
     if (isLoading) {
       return (
         <div className="flex flex-col items-center justify-center h-[70vh] text-center px-8">
-           <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-6"></div>
+          <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-6"></div>
            <h2 className="text-xl font-bold text-white mb-2">Scanne Portale...</h2>
-           <p className="text-slate-400 text-sm">Suche nach Inhalten in {settings.location} (Live)</p>
+           <p className="text-slate-400 text-sm">Suche nach Inhalten in {settings.locations?.join(', ') || '...'} (Live)</p>
         </div>
       );
     }
