@@ -2610,18 +2610,17 @@ async def get_lk_token_public(
     ).rstrip(b"=")
     token = (signing_input + b"." + signature).decode()
 
-    # AgentDispatch erstellen — livekit-agents v1.5 braucht expliziten Dispatch
-    # Wir schicken einen Admin-JWT an die LiveKit-Server-API
+    # Raum erstellen (auto-dispatcht den Agent via livekit-agents WorkerType.ROOM)
+    # livekit-agents v1.5: Agent wird dispatcht sobald Raum auf Server existiert
     try:
         lk_internal = os.getenv("LIVEKIT_INTERNAL_URL", "http://livekit-server:7880")
-        # Admin-JWT mit roomAdmin-Rechten
         admin_payload = {
             "iss": LIVEKIT_KEY,
-            "sub": "admin-dispatch",
+            "sub": "admin-room-create",
             "iat": now_i,
             "exp": now_i + 60,
             "nbf": now_i,
-            "video": {"roomAdmin": True, "room": safe_room},
+            "video": {"roomCreate": True, "roomAdmin": True, "room": safe_room},
         }
         admin_pl  = _b64.urlsafe_b64encode(json.dumps(admin_payload).encode()).rstrip(b"=")
         admin_inp = header + b"." + admin_pl
@@ -2632,12 +2631,12 @@ async def get_lk_token_public(
 
         async with httpx.AsyncClient(timeout=3.0) as _lk:
             await _lk.post(
-                f"{lk_internal}/twirp/livekit.AgentDispatch/CreateDispatch",
-                json={"room_name": safe_room, "agent_name": ""},
+                f"{lk_internal}/twirp/livekit.RoomService/CreateRoom",
+                json={"name": safe_room, "empty_timeout": 300},
                 headers={"Authorization": f"Bearer {admin_jwt}", "Content-Type": "application/json"},
             )
     except Exception as _e:
-        logging.getLogger("admin-ui").warning(f"AgentDispatch failed (non-fatal): {_e}")
+        logging.getLogger("admin-ui").warning(f"CreateRoom failed (non-fatal): {_e}")
 
     return {
         "token": token,
