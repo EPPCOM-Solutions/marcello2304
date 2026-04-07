@@ -35,7 +35,8 @@ export const SearchSettingsDialog: React.FC<Props> = ({ settings, setSettings, o
   };
 
   return (
-    <div className="absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-xl p-6 flex flex-col overflow-y-auto hide-scrollbar">
+    <div className="absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-xl flex flex-col">
+      <div className="p-6 flex-1 overflow-y-auto hide-scrollbar pb-24">
       <div className="flex justify-between items-center mb-8 pt-4">
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
           <Settings className="text-emerald-400" />
@@ -108,16 +109,32 @@ export const SearchSettingsDialog: React.FC<Props> = ({ settings, setSettings, o
              <span>Maximal-Preis</span>
              <span className="text-emerald-400">{localSettings.maxPrice.toLocaleString('de-DE')} €</span>
            </label>
-           <input 
-             type="range" 
-             min={localSettings.intent === 'rent' ? 300 : 50000} 
-             max={localSettings.intent === 'rent' ? 5000 : 2000000} 
-             step={localSettings.intent === 'rent' ? 50 : 10000}
-             value={localSettings.maxPrice}
-             onChange={e => setLocalSettings({...localSettings, maxPrice: Number(e.target.value)})}
-             className="w-full accent-emerald-500"
-           />
-        </div>
+            <input 
+              type="range" 
+              min={localSettings.intent === 'rent' ? 300 : 50000} 
+              max={localSettings.intent === 'rent' ? 5000 : 2000000} 
+              step={localSettings.intent === 'rent' ? 50 : 10000}
+              value={localSettings.maxPrice}
+              onChange={e => setLocalSettings({...localSettings, maxPrice: Number(e.target.value)})}
+              className="w-full accent-emerald-500"
+            />
+         </div>
+
+         <div>
+            <label className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-3 flex justify-between">
+              <span>Umkreis (Radius)</span>
+              <span className="text-emerald-400">+{localSettings.radius} km</span>
+            </label>
+            <input 
+              type="range" 
+              min={0} 
+              max={150} 
+              step={5}
+              value={localSettings.radius}
+              onChange={e => setLocalSettings({...localSettings, radius: Number(e.target.value)})}
+              className="w-full accent-emerald-500"
+            />
+         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -153,10 +170,13 @@ export const SearchSettingsDialog: React.FC<Props> = ({ settings, setSettings, o
            </label>
         </div>
       </div>
+      </div>
       
-      <button onClick={handleSave} className="mt-auto mb-6 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-lg p-4 rounded-2xl w-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all">
-        <Save className="w-5 h-5" /> Speichern & Suchen
-      </button>
+      <div className="p-6 bg-slate-950 border-t border-slate-800 shrink-0">
+        <button onClick={handleSave} className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-lg p-4 rounded-2xl w-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all">
+          <Save className="w-5 h-5" /> Speichern & Suchen
+        </button>
+      </div>
     </div>
   );
 };

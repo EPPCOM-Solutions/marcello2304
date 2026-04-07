@@ -139,6 +139,20 @@ export default function Home() {
     window.print();
   };
 
+  const exportEmail = () => {
+    if (savedProperties.length === 0) return;
+    const subject = encodeURIComponent("Meine gemerkten Immobilien (ImmoPulse)");
+    let body = "Hier sind meine gemerkten Immobilien:\n\n";
+    savedProperties.forEach(p => {
+       body += `🏠 ${p.title}\n📍 ${p.address}\n💰 ${p.price > 100 ? `${p.price} €` : 'k/A'}\n🔗 ${p.url || 'App-intern'}\n`;
+       if (p.notes) {
+         body += `📝 Notiz: ${p.notes}\n`;
+       }
+       body += `\n----------------------\n\n`;
+    });
+    window.location.href = `mailto:?subject=${subject}&body=${encodeURIComponent(body)}`;
+  };
+
   const updateNotes = (id: string, notes: string) => {
     setSavedProperties(savedProperties.map(p => p.id === id ? { ...p, notes } : p));
   };
@@ -222,9 +236,14 @@ export default function Home() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-black text-white">Gemerkt ({savedProperties.length})</h1>
         {savedProperties.length > 0 && (
-          <button onClick={exportPDF} className="px-3 py-1.5 bg-slate-800 text-emerald-400 text-xs font-bold rounded-lg border border-slate-700">
-            PDF Export
-          </button>
+          <div className="flex gap-2">
+            <button onClick={exportEmail} className="px-3 py-1.5 bg-slate-800 text-emerald-400 text-xs font-bold rounded-lg border border-slate-700">
+              E-Mail Senden
+            </button>
+            <button onClick={exportPDF} className="px-3 py-1.5 bg-slate-800 text-emerald-400 text-xs font-bold rounded-lg border border-slate-700">
+              PDF Export
+            </button>
+          </div>
         )}
       </div>
       {savedProperties.length === 0 ? (

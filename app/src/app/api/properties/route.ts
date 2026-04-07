@@ -34,7 +34,7 @@ async function fetchKleinanzeigen(location: string, intent: SearchIntent, provis
   
   // Custom URL logic using extracted ID if available
   const url = locId 
-    ? `https://www.kleinanzeigen.de/s-${categoryPath}/${categoryId}l${locId}`
+    ? `https://www.kleinanzeigen.de/s-${categoryPath}/${safeLocation}/${categoryId}l${locId}`
     : `https://www.kleinanzeigen.de/s-${categoryPath}/${safeLocation}/${categoryId}`;
 
   try {
