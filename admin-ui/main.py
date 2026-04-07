@@ -2617,7 +2617,8 @@ async def get_lk_token_public(
         admin_payload = {
             "iss": LIVEKIT_KEY, "sub": "admin-room-create",
             "iat": now_i, "exp": now_i + 60, "nbf": now_i,
-            "video": {"roomCreate": True, "roomAdmin": True, "roomList": True, "room": safe_room},
+            # Kein "room"-Feld → globale Admin-Rechte für DeleteRoom
+            "video": {"roomCreate": True, "roomAdmin": True, "roomList": True},
         }
         admin_pl  = _b64.urlsafe_b64encode(json.dumps(admin_payload).encode()).rstrip(b"=")
         admin_inp = header + b"." + admin_pl
