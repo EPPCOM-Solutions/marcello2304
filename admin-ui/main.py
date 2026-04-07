@@ -2610,10 +2610,40 @@ async def get_lk_token_public(
     ).rstrip(b"=")
     token = (signing_input + b"." + signature).decode()
 
+    # AgentDispatch erstellen — livekit-agents v1.5 braucht expliziten Dispatch
+    # Wir schicken einen Admin-JWT an die LiveKit-Server-API
+    try:
+        lk_internal = os.getenv("LIVEKIT_INTERNAL_URL", "http://livekit-server:7880")
+        # Admin-JWT mit roomAdmin-Rechten
+        admin_payload = {
+            "iss": LIVEKIT_KEY,
+            "sub": "admin-dispatch",
+            "iat": now_i,
+            "exp": now_i + 60,
+            "nbf": now_i,
+            "video": {"roomAdmin": True, "room": safe_room},
+        }
+        admin_pl  = _b64.urlsafe_b64encode(json.dumps(admin_payload).encode()).rstrip(b"=")
+        admin_inp = header + b"." + admin_pl
+        admin_sig = _b64.urlsafe_b64encode(
+            _hmac.new(LIVEKIT_SECRET.encode(), admin_inp, hashlib.sha256).digest()
+        ).rstrip(b"=")
+        admin_jwt = (admin_inp + b"." + admin_sig).decode()
+
+        async with httpx.AsyncClient(timeout=3.0) as _lk:
+            await _lk.post(
+                f"{lk_internal}/twirp/livekit.AgentDispatch/CreateDispatch",
+                json={"room_name": safe_room, "agent_name": ""},
+                headers={"Authorization": f"Bearer {admin_jwt}", "Content-Type": "application/json"},
+            )
+    except Exception as _e:
+        logging.getLogger("admin-ui").warning(f"AgentDispatch failed (non-fatal): {_e}")
+
     return {
         "token": token,
         "url":   os.getenv("LIVEKIT_PUBLIC_URL", "wss://appdb.eppcom.de/lk"),
         "room":  safe_room,
+        "livekit_url": os.getenv("LIVEKIT_PUBLIC_URL", "wss://appdb.eppcom.de/lk"),
     }
 
 
