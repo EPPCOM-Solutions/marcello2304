@@ -11,6 +11,42 @@ interface Props {
 
 export const ProfileVault: React.FC<Props> = ({ profile, setProfile }) => {
   const [saved, setSaved] = useState(false);
+  const [testingPortals, setTestingPortals] = useState<Record<string, 'testing' | 'success' | 'failed'>>({});
+
+  const handleTestPortal = async (portal: string, auth: any) => {
+    if (!auth.username || !auth.password) {
+      alert("Bitte fülle Benutzername und Passwort aus.");
+      return;
+    }
+    
+    const key = portal.toLowerCase();
+    setTestingPortals(prev => ({ ...prev, [key]: 'testing' }));
+    
+    try {
+      const res = await fetch('/api/test-credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portal, ...auth })
+      });
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        setTestingPortals(prev => ({ ...prev, [key]: 'success' }));
+      } else {
+        setTestingPortals(prev => ({ ...prev, [key]: 'failed' }));
+      }
+    } catch (e) {
+      setTestingPortals(prev => ({ ...prev, [key]: 'failed' }));
+    }
+    
+    setTimeout(() => {
+       setTestingPortals(prev => {
+         const newState = {...prev};
+         delete newState[key];
+         return newState;
+       });
+    }, 4000);
+  };
 
   const handleSave = () => {
     setSaved(true);
@@ -112,15 +148,31 @@ export const ProfileVault: React.FC<Props> = ({ profile, setProfile }) => {
               const key = portal.toLowerCase();
               const portalData = profile.portalLogins?.[key] || { username: '', password: '' };
               
+              const testState = testingPortals[key];
+              let buttonClass = "px-3 py-1 bg-slate-700 hover:bg-emerald-500 hover:text-slate-900 border border-slate-600 rounded-lg text-xs font-bold text-slate-300 transition-colors";
+              let buttonText = "Testen";
+              
+              if (testState === 'testing') {
+                 buttonClass = "px-3 py-1 bg-slate-600 border border-slate-500 rounded-lg text-xs font-bold text-slate-300 animate-pulse";
+                 buttonText = "Prüfe...";
+              } else if (testState === 'success') {
+                 buttonClass = "px-3 py-1 bg-emerald-500 border border-emerald-400 rounded-lg text-xs font-bold text-slate-900";
+                 buttonText = "Erfolgreich!";
+              } else if (testState === 'failed') {
+                 buttonClass = "px-3 py-1 bg-red-500 border border-red-400 rounded-lg text-xs font-bold text-white";
+                 buttonText = "Fehlgeschlagen";
+              }
+
               return (
                 <div key={portal} className="mb-4 bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
                   <div className="flex justify-between items-center mb-3">
                     <label className="text-sm font-bold text-slate-300 block">{portal} Login</label>
                     <button 
-                      onClick={() => alert(`${portal} Logindaten werden geprüft... (MOCK-Erfolgreich)`)}
-                      className="px-3 py-1 bg-slate-700 hover:bg-emerald-500 hover:text-slate-900 border border-slate-600 rounded-lg text-xs font-bold text-slate-300 transition-colors"
+                      onClick={() => handleTestPortal(portal, portalData)}
+                      disabled={testState === 'testing'}
+                      className={buttonClass}
                     >
-                      Testen
+                      {buttonText}
                     </button>
                   </div>
                   <div className="space-y-3">

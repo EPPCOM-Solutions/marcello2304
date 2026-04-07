@@ -94,6 +94,10 @@ async function fetchKleinanzeigen(location: string, intent: SearchIntent, provis
         const roomMatch = rawDesc.match(/(\d+(?:,\d+)?)\s*Zimmer/i);
         if (roomMatch) rooms = parseFloat(roomMatch[1].replace(',', '.'));
       }
+      if (rooms === null) {
+        const titleRoomMatch = title.match(/(\d+(?:,\d+)?)\s*Zi/i) || title.match(/(\d+(?:,\d+)?)\s*Zimmer/i);
+        if (titleRoomMatch) rooms = parseFloat(titleRoomMatch[1].replace(',', '.'));
+      }
       if (livingSpace === null) {
         const spaceMatch = rawDesc.match(/(\d+(?:,\d+)?)\s*m²/i);
         if (spaceMatch) livingSpace = parseFloat(spaceMatch[1].replace(',', '.'));

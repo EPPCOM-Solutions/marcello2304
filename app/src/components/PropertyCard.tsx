@@ -190,11 +190,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSwipe, i
           <div className="flex gap-4">
             <div className="flex-1 bg-slate-800/80 backdrop-blur-md rounded-2xl p-3 border border-slate-700/50 flex flex-col items-center justify-center">
               <Maximize className="w-5 h-5 text-emerald-400 mb-1" />
-              <span className="font-semibold">{property.livingSpace !== null ? `${property.livingSpace} m²` : '?'}</span>
+              <span className="font-semibold">{property.livingSpace !== null ? `${property.livingSpace} m²` : 'k.A.'}</span>
             </div>
             <div className="flex-1 bg-slate-800/80 backdrop-blur-md rounded-2xl p-3 border border-slate-700/50 flex flex-col items-center justify-center">
               <BedDouble className="w-5 h-5 text-emerald-400 mb-1" />
-              <span className="font-semibold">{property.rooms !== null ? `${property.rooms} Zi.` : '?'}</span>
+              <span className="font-semibold">{property.rooms !== null ? `${property.rooms} Zi.` : 'k.A.'}</span>
             </div>
             {property.priceTrend && (
               <div className="flex-1 bg-slate-800/80 backdrop-blur-md rounded-2xl p-3 border border-slate-700/50 flex flex-col items-center justify-center">
