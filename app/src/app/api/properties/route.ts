@@ -242,7 +242,7 @@ function generateMockRegional(location: string, intent: SearchIntent): Property[
      rooms: 4,
      livingSpace: 90,
      imageUrl: 'https://images.unsplash.com/photo-1449844908441-8829872d2607?q=80&w=1000&auto=format&fit=crop',
-     url: '#',
+     url: 'https://www.google.com/search?q=Immobilien+' + encodeURIComponent(location),
      source: portalName,
      competitionScore: 3, // Regional has less competition
      priceTrend: 'new'
@@ -262,7 +262,8 @@ export async function GET(request: Request) {
   }
 
   const locations = locationsParam.split(',').map(l => l.trim()).filter(Boolean);
-  const portals = portalsParam ? portalsParam.split(',').map(p => p.trim()) : ['Kleinanzeigen', 'Immowelt', 'ImmoScout24', 'Immonet', 'Regional']; // default all
+  const portalsRaw = portalsParam ? portalsParam.split(',').map(p => p.trim()).filter(Boolean) : [];
+  const portals = portalsRaw.length > 0 ? portalsRaw : ['Kleinanzeigen', 'Immowelt', 'ImmoScout24', 'Immonet', 'Regional']; // default all
   
   try {
     // Run all scrapes concurrently based on selected portals

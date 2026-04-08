@@ -63,13 +63,13 @@ export default function Home() {
         }
         const data = await res.json();
         
-        // Apply frontend fine grain filtering, keeping items where scraper couldn't resolve details (null)
+        // Apply frontend fine grain filtering
         const filtered = (data.properties || []).filter((p: Property) => {
           // If a max price is set below the 2Mil edge case, rule out if strictly higher.
           if (settings.maxPrice < 2000000 && p.price > 0 && p.price > settings.maxPrice) return false;
           
-          // Tolerant minRooms check: If user cares (>1), drop ONLY if we are sure it's smaller. Null passes.
-          if (settings.minRooms > 1 && p.rooms !== null && p.rooms < settings.minRooms) return false;
+          // Strict minRooms check: If user wants specific rooms (>1), drop anything smaller OR missing (null).
+          if (settings.minRooms > 1 && (p.rooms === null || p.rooms < settings.minRooms)) return false;
           
           // Tolerant minSpace check: If user cares (>10), drop ONLY if we are sure it's smaller. Null passes.
           if (settings.minSpace > 10 && p.livingSpace !== null && p.livingSpace < settings.minSpace) return false;
@@ -272,7 +272,18 @@ export default function Home() {
                   </div>
                 </div>
                 
-                <div className="mt-4 flex gap-2">
+                {property.url && (
+                  <a 
+                    href={property.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="mt-3 block w-full text-center py-2 bg-slate-700/50 hover:bg-emerald-500/20 text-emerald-400 border border-slate-600 hover:border-emerald-500/50 rounded-lg text-xs font-bold transition-all"
+                  >
+                    Anzeige direkt öffnen
+                  </a>
+                )}
+                
+                <div className="mt-4 pt-4 border-t border-slate-700/50 flex gap-2">
                   <button 
                     onClick={() => {
                       if(!hasApplied) handleApply(property.id);
