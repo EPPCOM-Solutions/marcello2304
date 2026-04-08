@@ -327,8 +327,9 @@ export default function Home() {
       {/* Header */}
       {currentTab === 'discover' && (
         <div className="px-8 pb-4 flex justify-between items-center z-40">
-          <div>
-            <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 uppercase tracking-widest">
+          <div className="flex flex-col">
+            <img src="https://www.eppcom.de/assets/images/Logo.webp" alt="EPPCOM" className="h-4 object-contain mb-1 self-start opacity-70" />
+            <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 uppercase tracking-widest leading-none">
               Immo<span className="text-white">Pulse</span>
             </h1>
           </div>

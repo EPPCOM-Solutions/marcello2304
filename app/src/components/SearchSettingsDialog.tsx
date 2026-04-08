@@ -145,12 +145,17 @@ export const SearchSettingsDialog: React.FC<Props> = ({ settings, setSettings, o
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-3 block">Zimmer (Min)</label>
-            <input 
-              type="number"
+            <select
               value={localSettings.minRooms}
               onChange={e => setLocalSettings({...localSettings, minRooms: Number(e.target.value)})}
-              className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white focus:border-emerald-500 outline-none"
-            />
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white focus:border-emerald-500 outline-none appearance-none"
+            >
+              {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 7, 8].map(num => (
+                <option key={num} value={num}>
+                  {num} {num >= 8 ? 'Zimmer oder mehr' : 'Zimmer'}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
              <label className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-3 block">Fläche m² (Min)</label>
