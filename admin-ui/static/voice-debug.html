@@ -20,22 +20,14 @@ async function runTest() {
     out('SDK loaded: ' + !!LK);
     out('Room class: ' + !!LK.Room);
 
-    // Step 1: Raw WebSocket test
-    out('\n--- Step 1: Raw WebSocket Test ---');
+    // Step 1: HTTPS reachability test (LiveKit-Server antwortet auf HTTP)
+    out('\n--- Step 1: Server Reachability Test ---');
     try {
-        const ws = new WebSocket('wss://appdb.eppcom.de:7443/');
-        await new Promise((resolve, reject) => {
-            ws.onopen = () => { out('Raw WS: OPEN'); resolve(); };
-            ws.onerror = (e) => { out('Raw WS: ERROR ' + JSON.stringify(e)); reject(e); };
-            setTimeout(() => { out('Raw WS: TIMEOUT 5s'); reject('timeout'); }, 5000);
-        });
-        ws.close();
-        out('Raw WS: OK - WebSocket works');
+        const res = await fetch('https://appdb.eppcom.de:7443/', { method: 'GET', signal: AbortSignal.timeout(5000) });
+        out('Server: HTTP ' + res.status + ' - Port 7443 erreichbar');
     } catch(e) {
-        out('Raw WS: FAILED - ' + e);
-        out('>>> PROBLEM: Browser cannot open WebSocket to wss://appdb.eppcom.de:7443');
-        out('>>> This means firewall, proxy, or cert issue');
-        return;
+        out('Server: FAILED - ' + e.message);
+        out('>>> Port 7443 nicht erreichbar (Firewall oder Netzwerk-Problem)');
     }
 
     // Step 2: Token fetch
