@@ -23,7 +23,7 @@ async function runTest() {
     // Step 1: Raw WebSocket test
     out('\n--- Step 1: Raw WebSocket Test ---');
     try {
-        const ws = new WebSocket('wss://appdb.eppcom.de/lk/');
+        const ws = new WebSocket('wss://appdb.eppcom.de:7443/');
         await new Promise((resolve, reject) => {
             ws.onopen = () => { out('Raw WS: OPEN'); resolve(); };
             ws.onerror = (e) => { out('Raw WS: ERROR ' + JSON.stringify(e)); reject(e); };
@@ -33,7 +33,7 @@ async function runTest() {
         out('Raw WS: OK - WebSocket works');
     } catch(e) {
         out('Raw WS: FAILED - ' + e);
-        out('>>> PROBLEM: Browser cannot open WebSocket to port 7443');
+        out('>>> PROBLEM: Browser cannot open WebSocket to wss://appdb.eppcom.de:7443');
         out('>>> This means firewall, proxy, or cert issue');
         return;
     }
@@ -71,7 +71,7 @@ async function runTest() {
         out('Calling room.connect()...');
         const startTime = Date.now();
 
-        await room.connect('wss://appdb.eppcom.de/lk', token, {
+        await room.connect('wss://appdb.eppcom.de:7443', token, {
             autoSubscribe: true,
             websocketTimeout: 30000,
             peerConnectionTimeout: 30000,

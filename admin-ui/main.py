@@ -2100,7 +2100,7 @@ async def public_voice_token(request: Request):
     ).rstrip(b"=")
     token = (signing_input + b"." + signature).decode()
 
-    return {"token": token, "url": os.getenv("LIVEKIT_PUBLIC_URL", "wss://appdb.eppcom.de/lk")}
+    return {"token": token, "url": (os.getenv("LIVEKIT_PUBLIC_URL") or "wss://appdb.eppcom.de:7443").replace("appdb.eppcom.de/lk", "appdb.eppcom.de:7443")}
 
 
 @app.post("/api/public/chat")
@@ -2547,7 +2547,7 @@ async def get_livekit_token(body: dict, session: SessionInfo = Depends(require_a
     ).rstrip(b"=")
     token = (signing_input + b"." + signature).decode()
 
-    return {"token": token, "url": os.getenv("LIVEKIT_PUBLIC_URL", "wss://appdb.eppcom.de/lk")}
+    return {"token": token, "url": (os.getenv("LIVEKIT_PUBLIC_URL") or "wss://appdb.eppcom.de:7443").replace("appdb.eppcom.de/lk", "appdb.eppcom.de:7443")}
 
 
 # ─── Öffentlicher Token-Endpunkt (für Homepage-Widget, kein Login nötig) ─────
@@ -2652,9 +2652,9 @@ async def get_lk_token_public(
 
     return {
         "token": token,
-        "url":   os.getenv("LIVEKIT_PUBLIC_URL", "wss://appdb.eppcom.de/lk"),
+        "url":   (os.getenv("LIVEKIT_PUBLIC_URL") or "wss://appdb.eppcom.de:7443").replace("appdb.eppcom.de/lk", "appdb.eppcom.de:7443"),
         "room":  safe_room,
-        "livekit_url": os.getenv("LIVEKIT_PUBLIC_URL", "wss://appdb.eppcom.de/lk"),
+        "livekit_url": (os.getenv("LIVEKIT_PUBLIC_URL") or "wss://appdb.eppcom.de:7443").replace("appdb.eppcom.de/lk", "appdb.eppcom.de:7443"),
     }
 
 
