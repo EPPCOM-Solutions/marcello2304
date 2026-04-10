@@ -3,10 +3,10 @@ import re
 from typing import Optional
 
 _KEYWORDS = [
-    r'ausweis', r'zeugnis', r'urkunde', r'zertifikat',
-    r'bescheinigung', r'führerschein', r'fuhrerschein',
-    r'vertrag', r'rechnung', r'urteil', r'vollmacht',
-    r'passport', r'certificate', r'contract', r'invoice',
+    r'ausweis\b', r'zeugnis\b', r'urkunde\b', r'zertifikat\b',
+    r'bescheinigung\b', r'führerschein\b', r'fuhrerschein\b',
+    r'vertrag\b', r'rechnung\b', r'urteil\b', r'vollmacht\b',
+    r'passport\b', r'certificate\b', r'contract\b', r'invoice\b',
 ]
 
 _WARNING = (

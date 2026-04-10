@@ -1,5 +1,4 @@
 # pdf-editor/tests/test_legal_checker.py
-import pytest
 from legal_checker import check
 
 def test_no_warning_for_plain_text():
@@ -41,3 +40,7 @@ def test_warning_is_string():
 def test_case_insensitive():
     result = check("test", "AUSWEIS NR. 12345")
     assert result is not None
+
+def test_no_warning_for_compound_word_containing_keyword():
+    # "Vertragsrecht" contains "vertrag" but is a different word
+    assert check("test", "Vertragsrecht und Rechnungslegung") is None
