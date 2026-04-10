@@ -1,12 +1,11 @@
 # pdf-editor/ocr.py
 import json
 import math
+import os
+import tempfile
 from pathlib import Path
 
 _ocr_instance = None
-
-# Create a placeholder for PaddleOCR so it can be mocked in tests
-PaddleOCR = None
 
 
 def _get_ocr():
@@ -36,7 +35,10 @@ def run_ocr(image_path: str, cache_path: str) -> list:
     """
     cache = Path(cache_path)
     if cache.exists():
-        return json.loads(cache.read_text())
+        try:
+            return json.loads(cache.read_text())
+        except (json.JSONDecodeError, OSError):
+            pass  # fall through to re-run OCR
 
     ocr = _get_ocr()
     result = ocr.ocr(image_path, cls=True)
@@ -52,5 +54,16 @@ def run_ocr(image_path: str, cache_path: str) -> list:
                 "confidence": float(confidence),
             })
 
-    cache.write_text(json.dumps(blocks))
+    if blocks:
+        tmp_fd, tmp_path = tempfile.mkstemp(suffix=".json", dir=str(cache.parent))
+        try:
+            os.close(tmp_fd)
+            Path(tmp_path).write_text(json.dumps(blocks))
+            os.replace(tmp_path, str(cache))
+        except Exception:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+            raise
     return blocks
