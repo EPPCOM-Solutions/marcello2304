@@ -232,8 +232,8 @@ export default function Home() {
     }
 
     return (
-      <div className="relative w-full h-full mt-4">
-        <div className="absolute inset-0 flex justify-center">
+      <div className="flex-1 w-full relative flex items-center justify-center p-4 sm:p-8 pb-6">
+        <div className="relative w-full max-w-[400px] h-full">
           {/* Render cards inverted so the current index is on top */}
           {[...properties]
             .slice(currentIndex, currentIndex + 3) // Only render top 3 for performance
@@ -241,22 +241,18 @@ export default function Home() {
             .map((property, idx, arr) => {
               const isTop = idx === arr.length - 1;
               return (
-                <div key={property.id} className="absolute inset-0 w-full flex justify-center pointer-events-none">
-                  <div className={`w-full max-w-[90%] transition-transform duration-300 ${isTop ? 'pointer-events-auto scale-100 transtone-y-0 z-20' : 'scale-95 -transtone-y-4 opacity-50 z-10'}`}>
-                    {isTop && (
-                      <PropertyCard 
-                        property={property} 
-                        onSwipe={handleSwipe}
-                        intent={settings.intent}
-                      />
-                    )}
-                    {!isTop && (
-                       // Mock background cards
-                       <div className="w-full h-[calc(100%-1rem)] p-4 pb-8">
-                         <div className="w-full h-full rounded-3xl glass backdrop-blur-sm border-white/5 bg-stone-800/40" />
-                       </div>
-                    )}
-                  </div>
+                <div key={property.id} className={`absolute inset-0 w-full h-full transition-transform duration-300 pointer-events-none ${isTop ? 'z-20 pointer-events-auto scale-100 translate-y-0' : 'z-10 scale-95 -translate-y-4 opacity-50'}`}>
+                  {isTop && (
+                    <PropertyCard 
+                      property={property} 
+                      onSwipe={handleSwipe}
+                      intent={settings.intent}
+                    />
+                  )}
+                  {!isTop && (
+                     // Mock background cards
+                     <div className="w-full h-full rounded-3xl glass backdrop-blur-sm border-white/5 bg-stone-800/40" />
+                  )}
                 </div>
               );
             })}

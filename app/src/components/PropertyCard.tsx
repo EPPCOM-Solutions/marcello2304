@@ -124,7 +124,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSwipe, i
       dragConstraints={{ left: 0, right: 0 }}
       onDragEnd={handleDragEnd}
       animate={exitX !== null ? { x: exitX, opacity: 0 } : { x: 0, opacity: 1 }}
-      className="absolute inset-0 w-full h-[calc(100%-1rem)] p-4 pb-8 cursor-grab active:cursor-grabbing origin-bottom"
+      className="w-full h-full cursor-grab active:cursor-grabbing origin-bottom"
     >
       <div className="relative w-full h-full rounded-3xl overflow-hidden glass shadow-2xl border border-stone-700/50">
         <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-900/40 to-transparent z-10" />
@@ -167,10 +167,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSwipe, i
         </motion.div>
 
         <div className="absolute bottom-0 left-0 right-0 p-5 z-20 text-white max-h-[50%] overflow-y-auto hide-scrollbar flex flex-col justify-end">
-          <div className="flex justify-between items-end mb-2 shrink-0">
-            <h2 className="text-2xl font-bold font-sans tracking-tight leading-tight max-w-[70%] drop-shadow-md">{property.title}</h2>
-            <div className="text-right">
-              <span className="text-3xl font-black text-white decoration-orange-500 underline decoration-4 underline-offset-4 drop-shadow-md">{property.price > 0 ? property.price.toLocaleString('de-DE') : 'k/A'}</span>
+          <div className="flex justify-between items-start mb-2 shrink-0 gap-3">
+            <h2 className="text-xl sm:text-2xl font-bold font-sans tracking-tight leading-tight line-clamp-3 drop-shadow-md">{property.title}</h2>
+            <div className="text-right shrink-0">
+              <span className="text-2xl sm:text-3xl font-black text-white decoration-orange-500 underline decoration-4 underline-offset-4 drop-shadow-md">{property.price > 0 ? property.price.toLocaleString('de-DE') : 'k/A'}</span>
               <span className="text-sm font-medium opacity-80 block">{property.price > 10000 ? '€ Kaufpreis' : '€ Kalt'}</span>
             </div>
           </div>
