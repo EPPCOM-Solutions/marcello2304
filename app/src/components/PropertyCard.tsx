@@ -16,15 +16,39 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSwipe, i
   const x = useMotionValue(0);
   
   // Image Carousel State
-  const images = property.imageUrls && property.imageUrls.length > 0
-    ? property.imageUrls 
-    : [property.imageUrl || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2'];
-
+  const [images, setImages] = useState<string[]>(
+    property.imageUrls && property.imageUrls.length > 0
+      ? property.imageUrls 
+      : [property.imageUrl || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2']
+  );
   const [imageIndex, setImageIndex] = useState(0);
+  const [loadingImages, setLoadingImages] = useState(false);
+
   const handleNextImage = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (imageIndex < images.length - 1) {
       setImageIndex(prev => prev + 1);
+      return;
+    }
+
+    // Try fetching more details if we only have 1 image and we haven't loaded yet
+    if (images.length === 1 && property.url && !loadingImages) {
+      setLoadingImages(true);
+      try {
+        const res = await fetch(`/api/properties/detail?url=${encodeURIComponent(property.url)}`);
+        const data = await res.json();
+        if (data.imageUrls && data.imageUrls.length > 0) {
+          const newImages = Array.from(new Set([property.imageUrl, ...data.imageUrls])).filter(Boolean) as string[];
+          setImages(newImages);
+          if (newImages.length > 1) {
+            setImageIndex(1);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingImages(false);
+      }
     }
   };
 
@@ -140,6 +164,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSwipe, i
 
         
 
+
+        {loadingImages && (
+          <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-30 px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-xs text-white pointer-events-none">
+             Bilder laden...
+          </div>
+        )}
 
         {/* Swipe Indicators */}
         <motion.div style={{ opacity: likeOpacity }} className="absolute top-10 left-8 z-30 transform -rotate-12 border-4 border-orange-400 rounded-xl px-4 py-2 text-orange-400 font-black text-4xl uppercase tracking-widest bg-orange-950/40 backdrop-blur-md">
