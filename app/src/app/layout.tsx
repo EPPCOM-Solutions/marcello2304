@@ -4,6 +4,15 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "LivingMatch",
   description: "Dein Zuhause, perfekt gematcht.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "LivingMatch"
+  },
+  manifest: "/manifest.json",
+  icons: {
+    apple: "/icon-192.webp"
+  }
 };
 
 export default function RootLayout({
