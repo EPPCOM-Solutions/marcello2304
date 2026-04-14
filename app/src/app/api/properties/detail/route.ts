@@ -40,9 +40,22 @@ export async function GET(request: Request) {
       }
     });
 
-    // Fallback if slider wasn't found - just get main image
+    // Aggressive generic gallery scraping if we missed
+    if (imageUrls.length < 2) {
+      $('img').each((_, element) => {
+        let src = $(element).attr('src') || $(element).attr('data-src') || $(element).attr('data-lazy');
+        if (src && src.startsWith('http')) {
+          // Look for images that are likely gallery items based on size/dimensions hints in URL
+          if (!src.includes('avatar') && !src.includes('logo') && !src.includes('icon')) {
+             if (!imageUrls.includes(src)) imageUrls.push(src);
+          }
+        }
+      });
+    }
+
+    // Fallback if still empty - just get main image
     if (imageUrls.length === 0) {
-      const mainImg = $('#viewad-image').attr('src');
+      const mainImg = $('#viewad-image').attr('src') || $('meta[property="og:image"]').attr('content');
       if (mainImg) imageUrls.push(mainImg);
     }
 

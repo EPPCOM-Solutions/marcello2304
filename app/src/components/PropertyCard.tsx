@@ -21,8 +21,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSwipe, i
   const [loadingImages, setLoadingImages] = useState(false);
 
   // Fetch all images lazily if they tap to see more
-  const handleNextImage = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleNextImage = async () => {
     if (imageIndex < images.length - 1) {
       setImageIndex(prev => prev + 1);
       return;
@@ -50,8 +49,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSwipe, i
     }
   };
 
-  const handlePrevImage = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handlePrevImage = () => {
     if (imageIndex > 0) setImageIndex(prev => prev - 1);
   };
 
@@ -147,10 +145,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSwipe, i
 
         <img src={images[imageIndex]} alt={property.title} className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300" draggable={false} />
         
-        {/* Image Navigation Overlays */}
+        {/* Image Navigation Overlays (using onTap to separate tap from swipe) */}
         <div className="absolute inset-0 z-30 flex">
-           <div className="w-1/2 h-full" onClick={handlePrevImage} />
-           <div className="w-1/2 h-full" onClick={handleNextImage} />
+           <motion.div className="w-1/2 h-full" onTap={handlePrevImage} />
+           <motion.div className="w-1/2 h-full" onTap={handleNextImage} />
         </div>
 
 
