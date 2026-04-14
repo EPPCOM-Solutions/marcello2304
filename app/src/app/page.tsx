@@ -349,10 +349,13 @@ export default function Home() {
       {currentTab === 'discover' && (
         <div className="px-8 pb-4 flex justify-between items-center z-40">
           <div className="flex flex-col">
-            <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400 tracking-tight leading-none mb-1">
-              LivingMatch
-            </h1>
-            <p className="text-stone-300 text-xs font-medium italic tracking-wide">
+            <div className="flex items-center gap-3 mb-1">
+              <img src="https://www.eppcom.de/assets/images/Logo.webp" alt="EPPCOM" className="h-8 object-contain drop-shadow-md" />
+              <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400 tracking-tight leading-none">
+                LivingMatch
+              </h1>
+            </div>
+            <p className="text-stone-300 text-xs font-medium italic tracking-wide pl-11">
               Dein Zuhause, perfekt gematcht.
             </p>
           </div>
