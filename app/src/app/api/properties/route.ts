@@ -342,33 +342,63 @@ export async function GET(request: Request) {
       radius
     };
 
-    console.log("Routing search request to N8N Webhook...", n8nWebhookUrl);
-    
-    const response = await fetch(n8nWebhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        // Fallback or warning if n8n is not set up yet
-        return NextResponse.json({ error: 'N8N Webhook is active but returned 404. Please import the n8n workflow JSON.' }, { status: 404 });
+    let n8nSuccess = false;
+    let data;
+    try {
+      console.log("Routing search request to N8N Webhook...", n8nWebhookUrl);
+      const response = await fetch(n8nWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        data = await response.json();
+        n8nSuccess = true;
       }
-      throw new Error(`N8N Responded with ${response.status}`);
+    } catch (e) {
+      console.log("N8N Proxy not available, falling back to local scraper...");
     }
 
-    const data = await response.json();
+    if (n8nSuccess && data && data.properties) {
+      return NextResponse.json({ 
+        properties: data.properties, 
+        meta: { locations, total: data.properties.length, viaNode: 'n8n' } 
+      });
+    }
+
+    // --- FALLBACK LOGIC ---
+    console.log("Using Local Scrapers as fallback...");
+    const promises: Promise<Property[]>[] = [];
+    
+    locations.forEach(loc => {
+      if (portals.includes('Kleinanzeigen')) {
+        promises.push(fetchKleinanzeigen(loc, intent, propertyType, provisionsfrei, radius));
+      }
+      if (portals.includes('Immowelt')) {
+        promises.push(fetchImmowelt(loc, intent, propertyType, provisionsfrei));
+      }
+      if (portals.includes('ImmoScout24')) {
+        promises.push(Promise.resolve(generateMockImmoscout(loc, intent, propertyType))); 
+      }
+      if (portals.includes('Immobilo')) {
+        promises.push(Promise.resolve(generateMockImmobilo(loc, intent, propertyType)));
+      }
+      if (portals.includes('Regional')) {
+        promises.push(fetchRegional(loc, intent, propertyType));
+      }
+    });
+
+    const results = await Promise.all(promises);
+    let fallbackProperties: Property[] = results.reduce((acc, val) => acc.concat(val), []);
+    fallbackProperties = fallbackProperties.sort(() => Math.random() - 0.5);
+
     return NextResponse.json({ 
-      properties: data.properties || [], 
-      meta: { locations, total: (data.properties || []).length, viaNode: 'n8n' } 
+      properties: fallbackProperties, 
+      meta: { locations, total: fallbackProperties.length, viaNode: 'local' } 
     });
 
   } catch (error: any) {
-    console.error("Aggregator N8N Proxy Error:", error);
-    // Silent fail for now, handled by page.tsx
+    console.error("Aggregator N8N/Local Proxy Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
