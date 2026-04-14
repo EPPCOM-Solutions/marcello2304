@@ -329,42 +329,46 @@ export async function GET(request: Request) {
   const portals = portalsRaw.length > 0 ? portalsRaw : ['Kleinanzeigen', 'Immowelt', 'ImmoScout24', 'Immobilo', 'Regional']; // default all
   
   try {
-    // Run all scrapes concurrently based on selected portals
-    const promises: Promise<Property[]>[] = [];
+    // Redirect logic to new N8N webhook
+    const n8nWebhookUrl = 'https://n8n.eppcom.de/webhook/livingmatch-search';
     
-    locations.forEach(loc => {
-      if (portals.includes('Kleinanzeigen')) {
-        promises.push(fetchKleinanzeigen(loc, intent, propertyType, provisionsfrei, radius));
-      }
-      if (portals.includes('Immowelt')) {
-        promises.push(fetchImmowelt(loc, intent, propertyType, provisionsfrei));
-      }
-      if (portals.includes('ImmoScout24')) {
-        promises.push(Promise.resolve(generateMockImmoscout(loc, intent, propertyType))); 
-      }
-      if (portals.includes('Immobilo')) {
-        promises.push(Promise.resolve(generateMockImmobilo(loc, intent, propertyType)));
-      }
-      if (portals.includes('Regional')) {
-        promises.push(fetchRegional(loc, intent, propertyType));
-      }
+    // Prepare the payload the same way we received it
+    const payload = {
+      locations,
+      portals,
+      intent,
+      propertyType,
+      provisionsfrei,
+      radius
+    };
+
+    console.log("Routing search request to N8N Webhook...", n8nWebhookUrl);
+    
+    const response = await fetch(n8nWebhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
     });
 
-    const results = await Promise.all(promises);
-    
-    // Flatten array
-    let properties: Property[] = results.reduce((acc, val) => acc.concat(val), []);
+    if (!response.ok) {
+      if (response.status === 404) {
+        // Fallback or warning if n8n is not set up yet
+        return NextResponse.json({ error: 'N8N Webhook is active but returned 404. Please import the n8n workflow JSON.' }, { status: 404 });
+      }
+      throw new Error(`N8N Responded with ${response.status}`);
+    }
 
-    // Shuffle slightly to interleave portals and locations
-    properties = properties.sort(() => Math.random() - 0.5);
-
+    const data = await response.json();
     return NextResponse.json({ 
-      properties, 
-      meta: { locations, total: properties.length } 
+      properties: data.properties || [], 
+      meta: { locations, total: (data.properties || []).length, viaNode: 'n8n' } 
     });
 
   } catch (error: any) {
-    console.error("Aggregator Error:", error);
+    console.error("Aggregator N8N Proxy Error:", error);
+    // Silent fail for now, handled by page.tsx
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

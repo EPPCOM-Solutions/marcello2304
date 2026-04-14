@@ -16,36 +16,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSwipe, i
   const x = useMotionValue(0);
   
   // Image Carousel State
-  const [images, setImages] = useState<string[]>(property.imageUrls && property.imageUrls.length > 0 ? property.imageUrls : [property.imageUrl]);
-  const [imageIndex, setImageIndex] = useState(0);
-  const [loadingImages, setLoadingImages] = useState(false);
+  const images = property.imageUrls && property.imageUrls.length > 0
+    ? property.imageUrls 
+    : [property.imageUrl || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2'];
 
+  const [imageIndex, setImageIndex] = useState(0);
   const handleNextImage = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (imageIndex < images.length - 1) {
       setImageIndex(prev => prev + 1);
-      return;
-    }
-    
-    // Fallback if we haven't loaded detail images yet
-    if (images.length === 1 && property.url && !loadingImages) {
-      setLoadingImages(true);
-      try {
-        const res = await fetch(`/api/properties/detail?url=${encodeURIComponent(property.url)}`);
-        const data = await res.json();
-        if (data.imageUrls && data.imageUrls.length > 0) {
-          // Merge old and new avoiding duplicates
-          const newImages = Array.from(new Set([property.imageUrl, ...data.imageUrls]));
-          setImages(newImages);
-          if (newImages.length > 1) {
-            setImageIndex(1);
-          }
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoadingImages(false);
-      }
     }
   };
 
