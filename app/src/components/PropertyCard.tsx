@@ -139,11 +139,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSwipe, i
 
 
         
-        {loadingImages && (
-          <div className="absolute top-8 left-1/2 transform -transtone-x-1/2 z-30 px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-xs text-white">
-             Bilder laden...
-          </div>
-        )}
+
 
         {/* Swipe Indicators */}
         <motion.div style={{ opacity: likeOpacity }} className="absolute top-10 left-8 z-30 transform -rotate-12 border-4 border-orange-400 rounded-xl px-4 py-2 text-orange-400 font-black text-4xl uppercase tracking-widest bg-orange-950/40 backdrop-blur-md">
