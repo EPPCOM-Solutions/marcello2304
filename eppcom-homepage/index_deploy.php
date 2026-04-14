@@ -1117,8 +1117,6 @@ if (($_GET['action'] ?? '') === 'contact') {
           <h4 class="font-bold mb-4">Kontakt</h4>
           <ul class="space-y-2 text-sm">
             <li>EPPCOM Solutions</li>
-            <li>Ulrichstraße 3, 72764 Reutlingen</li>
-            <li><a href="tel:+4915753640191" class="underline">+49 157 53640191</a></li>
             <li><a href="mailto:kontakt@eppcom.de" class="underline">kontakt@eppcom.de</a></li>
             <li><a href="https://www.linkedin.com/company/eppcom" target="_blank" rel="noopener" class="underline">LinkedIn</a></li>
           </ul>
@@ -1126,8 +1124,8 @@ if (($_GET['action'] ?? '') === 'contact') {
         <div>
           <h4 class="font-bold mb-4">Rechtliches</h4>
           <ul class="space-y-2 text-sm">
-            <li><a href="/impressum" class="underline">Impressum</a></li>
-            <li><a href="/datenschutz" class="underline">Datenschutzerklärung</a></li>
+            <li><a href="#" class="underline" onclick="openImpressumModal();return false;">Impressum</a></li>
+            <li><a href="#" class="underline" onclick="openPrivacyModal();return false;">Datenschutzerklärung</a></li>
             <li><button onclick="reopenCookieBanner()" class="underline text-left" style="background:none;border:none;color:inherit;cursor:pointer;padding:0;font-size:inherit">Cookie-Einstellungen</button></li>
             <li><a href="#faq" class="underline">FAQ</a></li>
           </ul>
@@ -1150,6 +1148,31 @@ if (($_GET['action'] ?? '') === 'contact') {
         <button class="close" onclick="closeModal('serviceModal')" aria-label="Schließen">&times;</button>
       </div>
       <div id="modalBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Impressum-Modal -->
+  <div id="impressumModal" class="modal" role="dialog" aria-modal="true" aria-label="Impressum"
+    onclick="if(event.target===this)closeModal('impressumModal')">
+    <div class="modal-content" style="max-width:680px">
+      <div class="modal-header">
+        <h3 class="text-xl font-bold">Impressum</h3>
+        <button class="close" onclick="closeModal('impressumModal')" aria-label="Schließen">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="font-bold text-white">EPPCOM Solutions</p>
+        <p class="mt-2">Ulrichstraße 3<br>72764 Reutlingen<br>Deutschland</p>
+        <p class="mt-3"><strong>Kontakt:</strong><br>
+          E-Mail: <a href="mailto:kontakt@eppcom.de" class="underline" style="color:var(--link)">kontakt@eppcom.de</a><br>
+          Tel.: <a href="tel:+4915753640191" class="underline" style="color:var(--link)">+49 157 53640191</a>
+        </p>
+        <p class="mt-3"><strong>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:</strong><br>
+          Marcel Lehr, Ulrichstraße 3, 72764 Reutlingen
+        </p>
+        <p class="mt-3 text-sm" style="color:#94a3b8">
+          Haftungshinweis: Trotz sorgfältiger inhaltlicher Kontrolle übernehmen wir keine Haftung für die Inhalte externer Links. Für den Inhalt der verlinkten Seiten sind ausschließlich deren Betreiber verantwortlich.
+        </p>
+      </div>
     </div>
   </div>
 
@@ -1210,242 +1233,15 @@ if (($_GET['action'] ?? '') === 'contact') {
     </div>
   </div>
 
-  <!-- ===== VOICEBOT-WIDGET ===== -->
-  <style>
-    #voiceWidget { position:fixed; bottom:24px; right:24px; z-index:8000; }
-    #voiceWidgetBtn {
-      width:60px; height:60px; border-radius:50%; border:none; cursor:pointer;
-      background:linear-gradient(135deg,var(--accent),var(--accent-2));
-      box-shadow:0 4px 20px rgba(102,126,234,.55);
-      display:flex; align-items:center; justify-content:center;
-      transition:transform .2s, box-shadow .2s;
-    }
-    #voiceWidgetBtn:hover { transform:scale(1.08); box-shadow:0 6px 28px rgba(102,126,234,.7); }
-    #voiceWidgetBtn svg { width:28px; height:28px; fill:#fff; }
-    #voiceWidgetBadge {
-      position:absolute; top:-2px; right:-2px;
-      background:#10b981; width:14px; height:14px;
-      border-radius:50%; border:2px solid #000;
-      display:none;
-    }
-    #voiceWidgetBadge.active { display:block; }
-    #voiceWidgetPanel {
-      display:none; position:absolute; bottom:72px; right:0;
-      width:340px;
-      background:rgba(17,24,39,.97);
-      border:1px solid var(--glass-border);
-      border-radius:20px;
-      box-shadow:0 8px 40px rgba(0,0,0,.6);
-      backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-      overflow:hidden;
-    }
-    #voiceWidgetPanel.open { display:block; }
-    .vw-header {
-      background:linear-gradient(135deg,var(--accent),var(--accent-2));
-      padding:14px 16px; display:flex; align-items:center; justify-content:space-between;
-    }
-    .vw-header-left { display:flex; align-items:center; gap:10px; }
-    .vw-header img { height:28px; filter:brightness(0) invert(1); }
-    .vw-title { font-weight:700; color:#fff; font-size:.95rem; }
-    .vw-subtitle { font-size:.75rem; color:rgba(255,255,255,.8); }
-    .vw-close { background:none; border:none; color:#fff; font-size:22px; cursor:pointer; line-height:1; padding:0 4px; }
-    .vw-chat {
-      background:rgba(0,0,0,.25); padding:12px;
-      height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;
-    }
-    .vw-chat::-webkit-scrollbar { width:4px; }
-    .vw-chat::-webkit-scrollbar-thumb { background:rgba(255,255,255,.2); border-radius:4px; }
-    .vw-bubble {
-      max-width:85%; padding:8px 12px; border-radius:14px;
-      font-size:.83rem; line-height:1.45; word-break:break-word;
-      animation:fadeIn .2s ease;
-    }
-    .vw-bubble.bot { background:rgba(102,126,234,.35); color:#e2e8f0; align-self:flex-start; border-bottom-left-radius:4px; }
-    .vw-bubble.user { background:rgba(255,255,255,.12); color:#f8fafc; align-self:flex-end; border-bottom-right-radius:4px; }
-    .vw-proc {
-      display:none; align-items:center; gap:8px; padding:6px 12px;
-      background:rgba(251,191,36,.1); border-top:1px solid rgba(251,191,36,.2);
-      font-size:.8rem; color:#fbbf24;
-    }
-    .vw-proc.active { display:flex; }
-    .vw-dots span { display:inline-block; width:5px; height:5px; border-radius:50%; background:#fbbf24; animation:blink 1.2s infinite; }
-    .vw-dots span:nth-child(2){animation-delay:.2s} .vw-dots span:nth-child(3){animation-delay:.4s}
-    .vw-controls { padding:14px 16px; display:flex; align-items:center; justify-content:center; gap:12px; }
-    .vw-mic {
-      width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
-      background:linear-gradient(135deg,var(--accent),var(--accent-2));
-      display:flex; align-items:center; justify-content:center;
-      transition:all .2s; box-shadow:0 4px 16px rgba(102,126,234,.4);
-    }
-    .vw-mic:hover { transform:scale(1.06); }
-    .vw-mic:disabled { opacity:.4; cursor:not-allowed; transform:none; }
-    .vw-mic.listening { background:linear-gradient(135deg,#dc2626,#ef4444); box-shadow:0 4px 16px rgba(239,68,68,.5); animation:vwPulse 1.5s infinite; }
-    .vw-mic.speaking { background:linear-gradient(135deg,#059669,#10b981); box-shadow:0 4px 16px rgba(16,185,129,.5); }
-    @keyframes vwPulse { 0%,100%{box-shadow:0 4px 16px rgba(239,68,68,.5)} 50%{box-shadow:0 4px 28px rgba(239,68,68,.8),0 0 0 8px rgba(239,68,68,.1)} }
-    .vw-mic svg { width:26px; height:26px; fill:#fff; }
-    .vw-info { display:flex; flex-direction:column; gap:2px; }
-    .vw-label { font-size:.83rem; color:#e2e8f0; font-weight:600; }
-    .vw-wave { display:none; gap:3px; align-items:center; height:20px; }
-    .vw-wave.active { display:flex; }
-    .vw-wave span { display:inline-block; width:3px; border-radius:2px; background:var(--accent); animation:wave 1s infinite ease-in-out; }
-    .vw-wave.speaking span { background:#10b981; }
-    .vw-wave span:nth-child(1){animation-delay:0s;height:6px} .vw-wave span:nth-child(2){animation-delay:.1s;height:14px}
-    .vw-wave span:nth-child(3){animation-delay:.2s;height:20px} .vw-wave span:nth-child(4){animation-delay:.1s;height:14px}
-    .vw-wave span:nth-child(5){animation-delay:0s;height:6px}
-    .vw-end { background:none; border:1px solid rgba(255,255,255,.2); color:rgba(255,255,255,.6); padding:5px 14px; border-radius:8px; font-size:.78rem; cursor:pointer; transition:all .15s; }
-    .vw-end:hover { border-color:#ef4444; color:#ef4444; }
-    .vw-footer { font-size:.72rem; color:rgba(255,255,255,.3); text-align:center; padding:0 16px 12px; }
-    @media(max-width:400px) { #voiceWidgetPanel { width:calc(100vw - 32px); right:-8px; } }
-  </style>
-
-  <div id="voiceWidget">
-    <div id="voiceWidgetPanel">
-      <div class="vw-header">
-        <div class="vw-header-left">
-          <img src="/assets/images/Logo.webp" alt="EPPCOM" onerror="this.style.display='none'">
-          <div>
-            <div class="vw-title">Nexo – KI-Assistent</div>
-            <div class="vw-subtitle">Sprich mit Nexo über EPPCOM Solutions</div>
-          </div>
-        </div>
-        <button class="vw-close" onclick="closeVoiceWidget()" aria-label="Widget schließen">×</button>
-      </div>
-      <div class="vw-chat" id="vwChat">
-        <div class="vw-bubble bot">Klick auf den Knopf und stell mir eine Frage!</div>
-      </div>
-      <div class="vw-proc" id="vwProc">
-        <div class="vw-dots"><span></span><span></span><span></span></div>
-        <span id="vwProcLabel">Nexo denkt nach…</span>
-        <span id="vwProcTimer" style="margin-left:auto;font-weight:700">0s</span>
-      </div>
-      <div class="vw-controls">
-        <button class="vw-mic" id="vwMicBtn" onclick="vwToggleCall()">
-          <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
-        </button>
-        <div class="vw-info">
-          <div class="vw-label" id="vwLabel">Klicken zum Starten</div>
-          <div class="vw-wave" id="vwWave"><span></span><span></span><span></span><span></span><span></span></div>
-        </div>
-        <button class="vw-end" id="vwEndBtn" style="display:none" onclick="vwEndCall()">Beenden</button>
-      </div>
-      <div class="vw-footer">Powered by EPPCOM Solutions</div>
-    </div>
-    <button id="voiceWidgetBtn" onclick="toggleVoiceWidget()" aria-label="Voicebot öffnen" title="Nexo – KI-Assistent">
-      <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
-    </button>
-    <div id="voiceWidgetBadge"></div>
-  </div>
-  <div id="vwAudio" style="display:none"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.js" defer></script>
-  <script>
-  /* Voicebot Widget */
-  const VW_TOKEN_URL = 'https://appdb.eppcom.de/api/lk-token';
-  const VW_ROOM = 'eppcom-voice';
-  let vwRoom = null, vwConnected = false, vwProcInterval = null, vwProcStart = null, vwWaitingResp = false;
-
-  function toggleVoiceWidget() {
-    const p = document.getElementById('voiceWidgetPanel');
-    p.classList.toggle('open');
-  }
-  function closeVoiceWidget() {
-    document.getElementById('voiceWidgetPanel').classList.remove('open');
-    if (vwConnected) vwEndCall();
-  }
-  function vwAddBubble(text, who) {
-    const c = document.getElementById('vwChat');
-    const el = document.createElement('div');
-    el.className = 'vw-bubble ' + who;
-    el.textContent = text;
-    c.appendChild(el);
-    c.scrollTop = c.scrollHeight;
-  }
-  function vwStartProc() {
-    vwProcStart = Date.now();
-    document.getElementById('vwProcTimer').textContent = '0s';
-    document.getElementById('vwProcLabel').textContent = 'Nexo denkt nach…';
-    document.getElementById('vwProc').classList.add('active');
-    vwProcInterval = setInterval(() => {
-      const s = Math.floor((Date.now() - vwProcStart) / 1000);
-      document.getElementById('vwProcTimer').textContent = s + 's';
-      if (s >= 3) document.getElementById('vwProcLabel').textContent = 'Antwort wird generiert…';
-    }, 500);
-  }
-  function vwStopProc() {
-    clearInterval(vwProcInterval); vwProcInterval = null;
-    document.getElementById('vwProc').classList.remove('active');
-  }
-  function vwSetState(state) {
-    const btn = document.getElementById('vwMicBtn');
-    const lbl = document.getElementById('vwLabel');
-    const wave = document.getElementById('vwWave');
-    const end = document.getElementById('vwEndBtn');
-    const badge = document.getElementById('voiceWidgetBadge');
-    btn.className = 'vw-mic';
-    wave.className = 'vw-wave';
-    if (state === 'idle') { btn.disabled=false; lbl.textContent='Klicken zum Starten'; end.style.display='none'; vwStopProc(); badge.classList.remove('active'); }
-    else if (state === 'connecting') { btn.disabled=true; lbl.textContent='Verbinde…'; }
-    else if (state === 'listening') { btn.disabled=false; btn.classList.add('listening'); wave.classList.add('active'); lbl.textContent='Höre zu…'; end.style.display='block'; vwStopProc(); badge.classList.add('active'); }
-    else if (state === 'processing') { btn.disabled=false; lbl.textContent='Verarbeite…'; end.style.display='block'; vwStartProc(); }
-    else if (state === 'speaking') { btn.disabled=false; btn.classList.add('speaking'); wave.classList.add('active','speaking'); lbl.textContent='Nexo antwortet'; end.style.display='block'; vwStopProc(); }
-    else if (state === 'ended') { btn.disabled=false; lbl.textContent='Klicken zum Starten'; end.style.display='none'; vwStopProc(); badge.classList.remove('active'); }
-  }
-  async function vwToggleCall() { if (vwConnected) { await vwEndCall(); } else { await vwStartCall(); } }
-  async function vwStartCall() {
-    vwSetState('connecting');
-    try {
-      const resp = await fetch(`${VW_TOKEN_URL}?room=${encodeURIComponent(VW_ROOM)}&user=widget-visitor`);
-      if (!resp.ok) throw new Error('Token-Server HTTP ' + resp.status);
-      const data = await resp.json();
-      const { Room, RoomEvent, Track } = LivekitClient;
-      vwRoom = new Room({ adaptiveStream:false, dynacast:false });
-      vwRoom.on(RoomEvent.Connected, () => { vwConnected=true; vwSetState('listening'); });
-      vwRoom.on(RoomEvent.Disconnected, () => { vwConnected=false; vwSetState('ended'); vwRoom=null; document.getElementById('vwAudio').innerHTML=''; });
-      vwRoom.on(RoomEvent.TrackSubscribed, (track) => {
-        if (track.kind !== Track.Kind.Audio) return;
-        const el = track.attach(); el.setAttribute('autoplay','');
-        document.getElementById('vwAudio').appendChild(el);
-        const elapsed = vwProcStart ? Date.now()-vwProcStart : 9999;
-        if (vwWaitingResp && elapsed < 2500) { document.getElementById('vwProcLabel').textContent='Einen Moment…'; }
-        else { vwWaitingResp=false; vwSetState('speaking'); }
-      });
-      vwRoom.on(RoomEvent.TrackUnsubscribed, (track) => {
-        track.detach().forEach(el => el.remove());
-        if (vwWaitingResp) { document.getElementById('vwProcLabel').textContent='Antwort wird generiert…'; }
-        else if (vwConnected) { vwSetState('listening'); }
-      });
-      vwRoom.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
-        const userSpeaking = speakers.some(s => s.isLocal);
-        if (!userSpeaking && vwConnected) {
-          setTimeout(() => {
-            if (vwConnected && document.getElementById('vwMicBtn').classList.contains('listening')) {
-              vwWaitingResp=true; vwSetState('processing');
-            }
-          }, 300);
-        }
-      });
-      vwRoom.on(RoomEvent.DataReceived, (payload) => {
-        try {
-          const msg = JSON.parse(new TextDecoder().decode(payload));
-          if (msg.type==='user_speech' && msg.text) { vwAddBubble(msg.text,'user'); vwSetState('processing'); }
-          else if (msg.type==='agent_speech' && msg.text) { vwAddBubble(msg.text,'bot'); }
-        } catch(_) {}
-      });
-      const lkUrl = data.livekit_url || data.url || 'wss://appdb.eppcom.de/lk';
-      await vwRoom.connect(lkUrl, data.token, { autoSubscribe:true });
-      await vwRoom.localParticipant.setMicrophoneEnabled(true);
-    } catch(e) {
-      vwConnected=false; vwSetState('idle');
-      vwAddBubble('Verbindungsfehler: ' + e.message, 'bot');
-    }
-  }
-  async function vwEndCall() {
-    if (vwRoom) await vwRoom.disconnect();
-    vwConnected=false; vwSetState('idle');
-    vwAddBubble('Gespräch beendet. Bis bald!', 'bot');
-  }
-  </script>
-  <!-- /VOICEBOT-WIDGET -->
+  <!-- ===== CHAT + VOICE WIDGET ===== -->
+  <script src="https://appdb.eppcom.de/widget/chat-widget.js"
+    data-typebot-id="eppcom-chatbot-v2"
+    data-typebot-host="https://bot.eppcom.de"
+    data-voice-token-url="https://appdb.eppcom.de/api/lk-token"
+    data-livekit-url="wss://appdb.eppcom.de:7443"
+    data-color="#667EEA"
+    defer></script>
+  <!-- /CHAT + VOICE WIDGET -->
 
   <!-- ===== HAUPTSKRIPT ===== -->
   <script>
@@ -1831,6 +1627,10 @@ if (($_GET['action'] ?? '') === 'contact') {
   ------------------------------------------------------- */
   function openPrivacyModal() {
     document.getElementById('privacyModal').style.display = 'flex';
+    document.body.classList.add('modal-open');
+  }
+  function openImpressumModal() {
+    document.getElementById('impressumModal').style.display = 'flex';
     document.body.classList.add('modal-open');
   }
   function openFinder() {

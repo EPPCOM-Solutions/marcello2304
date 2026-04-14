@@ -2658,6 +2658,19 @@ async def get_lk_token_public(
     }
 
 
+@app.post("/api/lk-token")
+async def post_lk_token_public(request: Request):
+    """POST-Alias für GET /api/lk-token — Kompatibilität mit chat-widget.js."""
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        pass
+    room = body.get("room", "eppcom-voice")
+    user = body.get("identity", body.get("user", "visitor"))
+    return await get_lk_token_public(room=room, user=user, request=request)
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Jitsi Meet Token Endpoint
 # ══════════════════════════════════════════════════════════════════════════════
