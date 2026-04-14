@@ -51,6 +51,19 @@ export async function GET(request: Request) {
           }
         }
       });
+      
+      // Fallback: Scan raw HTML for any image URLs if DOM scraping missed the JS-rendered galleries
+      if (imageUrls.length < 2) {
+        const regexMatches = html.match(/https:\/\/[^"'\s<>]+?\.(?:jpg|jpeg|png|webp)(?:\?[^"'\s<>]*)?/gi);
+        if (regexMatches) {
+          regexMatches.forEach(url => {
+            if (!url.includes('avatar') && !url.includes('logo') && !url.includes('icon') && !url.includes('/svg/')) {
+              const cleanUrl = url.replace(/\\u002F/g, '/'); // fix JSON escaped slashes
+              if (!imageUrls.includes(cleanUrl)) imageUrls.push(cleanUrl);
+            }
+          });
+        }
+      }
     }
 
     // Fallback if still empty - just get main image

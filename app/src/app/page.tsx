@@ -241,7 +241,7 @@ export default function Home() {
             .map((property, idx, arr) => {
               const isTop = idx === arr.length - 1;
               return (
-                <div key={property.id} className={`absolute inset-0 w-full h-full transition-transform duration-300 pointer-events-none ${isTop ? 'z-20 pointer-events-auto scale-100 translate-y-0' : 'z-10 scale-95 -translate-y-4 opacity-50'}`}>
+                <div key={property.id} className={`absolute inset-0 w-full h-full transition-transform duration-300 ${isTop ? 'z-20 pointer-events-auto scale-100 translate-y-0' : 'z-10 pointer-events-none scale-95 -translate-y-4 opacity-50'}`}>
                   {isTop && (
                     <PropertyCard 
                       property={property} 
@@ -350,7 +350,7 @@ export default function Home() {
         <div className="px-8 pb-4 flex justify-between items-center z-40">
           <div className="flex flex-col">
             <div className="flex items-center gap-3 mb-1">
-              <img src="https://www.eppcom.de/assets/images/Logo.webp" alt="EPPCOM" className="h-20 object-contain drop-shadow-md" />
+              <img src="https://www.eppcom.de/assets/images/Logo.webp" alt="EPPCOM" className="h-16 object-contain drop-shadow-md" />
               <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400 tracking-tight leading-none">
                 LivingMatch
               </h1>
