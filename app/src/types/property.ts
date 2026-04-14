@@ -30,6 +30,12 @@ export interface UserProfile {
   hasPets: boolean;
   applicationText: string;
   portalLogins?: Record<string, { username?: string, password?: string }>;
+  emailCredentials?: {
+    host?: string;
+    port?: string;
+    user?: string;
+    pass?: string;
+  };
 }
 
 export interface SearchSettings {

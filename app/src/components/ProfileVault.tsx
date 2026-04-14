@@ -84,7 +84,7 @@ export const ProfileVault: React.FC<Props> = ({ profile, setProfile }) => {
           </div>
           
           <div>
-            <label className="text-xs uppercase tracking-wider text-stone-400 font-bold mb-2 block">E-Mail Adresse</label>
+            <label className="text-xs uppercase tracking-wider text-stone-400 font-bold mb-2 block">E-Mail Adresse (Für Bewerbungen)</label>
             <input 
               type="email" 
               value={profile.email}
@@ -92,6 +92,57 @@ export const ProfileVault: React.FC<Props> = ({ profile, setProfile }) => {
               className="w-full bg-stone-800/50 border border-stone-700 focus:border-orange-500 rounded-xl p-3.5 text-white outline-none transition-all"
               placeholder="max@beispiel.de"
             />
+          </div>
+
+          <div className="bg-stone-800/30 p-4 rounded-xl border border-stone-700/50 mb-6">
+            <h3 className="text-orange-400 font-bold text-sm mb-3">E-Mail Server Einstellung (SMTP/IMAP)</h3>
+            <p className="text-xs text-stone-400 mb-4">Hinterlege hier die SMTP-Daten deines E-Mail-Anbieters (z.B. GMail, GMX, Web.de), damit Bewerbungen über dein Postfach verschickt werden können.</p>
+            
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="text-[10px] uppercase text-stone-400 font-semibold mb-1 block">SMTP Server</label>
+                <input 
+                  type="text" 
+                  value={profile.emailCredentials?.host || ''}
+                  onChange={e => setProfile({...profile, emailCredentials: { ...profile.emailCredentials, host: e.target.value }})}
+                  className="w-full bg-stone-900/50 border border-stone-700 focus:border-orange-500 rounded-lg p-2.5 text-sm text-white outline-none"
+                  placeholder="smtp.gmail.com"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase text-stone-400 font-semibold mb-1 block">Port</label>
+                <input 
+                  type="text" 
+                  value={profile.emailCredentials?.port || ''}
+                  onChange={e => setProfile({...profile, emailCredentials: { ...profile.emailCredentials, port: e.target.value }})}
+                  className="w-full bg-stone-900/50 border border-stone-700 focus:border-orange-500 rounded-lg p-2.5 text-sm text-white outline-none"
+                  placeholder="465 oder 587"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] uppercase text-stone-400 font-semibold mb-1 block">E-Mail / Benutzername</label>
+                <input 
+                  type="text" 
+                  value={profile.emailCredentials?.user || ''}
+                  onChange={e => setProfile({...profile, emailCredentials: { ...profile.emailCredentials, user: e.target.value }})}
+                  className="w-full bg-stone-900/50 border border-stone-700 focus:border-orange-500 rounded-lg p-2.5 text-sm text-white outline-none"
+                  placeholder="name@beispiel.de"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase text-stone-400 font-semibold mb-1 block">App-Passwort</label>
+                <input 
+                  type="password" 
+                  value={profile.emailCredentials?.pass || ''}
+                  onChange={e => setProfile({...profile, emailCredentials: { ...profile.emailCredentials, pass: e.target.value }})}
+                  className="w-full bg-stone-900/50 border border-stone-700 focus:border-orange-500 rounded-lg p-2.5 text-sm text-white outline-none"
+                  placeholder="Dein SMTP Passwort"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
