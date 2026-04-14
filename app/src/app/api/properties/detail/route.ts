@@ -38,6 +38,7 @@ export async function GET(request: Request) {
     
     // Aggressive JSON / Skript RegEx Suche (Fallbacks)
     if (imageUrls.length < 2) {
+      // 1. Standard extension regex
       const regexMatches = html.match(/https:\/\/[^"'\s<>]+?\.(?:jpg|jpeg|png|webp)(?:\?[^"'\s<>]*)?/gi);
       if (regexMatches) {
         regexMatches.forEach(url => {
@@ -46,6 +47,15 @@ export async function GET(request: Request) {
             if (!imageUrls.includes(cleanUrl)) imageUrls.push(cleanUrl);
           }
         });
+      }
+      
+      // 2. Kleinanzeigen specific dynamic loading format (No extension needed)
+      const kaMatches = html.match(/https:\/\/img\.kleinanzeigen\.de\/api\/v1\/prod-ads\/images\/[^"'\s<>\\]+/gi);
+      if (kaMatches) {
+         kaMatches.forEach(url => {
+            const cleanUrl = url.replace(/\\u002F/g, '/').replace(/"$/, '').replace(/\\$/, '');
+            if (!imageUrls.includes(cleanUrl)) imageUrls.push(cleanUrl);
+         });
       }
     }
 

@@ -95,12 +95,17 @@ async function fetchKleinanzeigen(location: string, intent: SearchIntent, proper
       });
       
       if (rooms === null) {
-        const roomMatch = rawDesc.match(/(\d+(?:[.,]\d+)?)\s*Zimmer/i);
+        const roomMatch = rawDesc.match(/(\d+(?:[.,]\d+)?)\s*[-]?(?:Zimmer|Zi\.|Zi\b)/i);
         if (roomMatch) rooms = parseFloat(roomMatch[1].replace(',', '.'));
       }
       if (rooms === null) {
-        const titleRoomMatch = title.match(/(\d+(?:[.,]\d+)?)\s*Zi/i) || title.match(/(\d+(?:[.,]\d+)?)\s*Zimmer/i);
+        const titleRoomMatch = title.match(/(\d+(?:[.,]\d+)?)\s*[-]?(?:Zimmer|Zi\.|Zi\b)/i);
         if (titleRoomMatch) rooms = parseFloat(titleRoomMatch[1].replace(',', '.'));
+      }
+      if (rooms === null) {
+         // Also check for something like "2 ZKB", "3 ZKBB"
+         const zkbMatch = rawDesc.match(/(\d+(?:[.,]\d+)?)\s*[-]?(?:ZKB|ZBB|Zimmern)/i) || title.match(/(\d+(?:[.,]\d+)?)\s*[-]?(?:ZKB|ZBB)/i);
+         if (zkbMatch) rooms = parseFloat(zkbMatch[1].replace(',', '.'));
       }
       if (livingSpace === null) {
         const spaceMatch = rawDesc.match(/(\d+(?:[.,]\d+)?)\s*m²/i);
@@ -273,6 +278,7 @@ export async function GET(request: Request) {
   const propertyType = searchParams.get('propertyType') || 'wohnung';
   const provisionsfrei = searchParams.get('provisionsfrei') === 'true';
   const radius = parseInt(searchParams.get('radius') || '10', 10);
+  const minRooms = parseFloat(searchParams.get('minRooms') || '1');
   
   if (!locationsParam) {
     return NextResponse.json({ error: 'Locations parameter is required' }, { status: 400 });
@@ -293,7 +299,8 @@ export async function GET(request: Request) {
       intent,
       propertyType,
       provisionsfrei,
-      radius
+      radius,
+      minRooms
     };
 
     let n8nSuccess = false;

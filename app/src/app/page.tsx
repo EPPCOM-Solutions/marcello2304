@@ -59,7 +59,8 @@ export default function Home() {
         const portalsQuery = encodeURIComponent((settings.activePortals || []).join(','));
         const radiusConfig = settings.radius || 10;
         const pType = settings.propertyType || 'wohnung';
-        const res = await fetch(`/api/properties?locations=${locationsQuery}&portals=${portalsQuery}&intent=${settings.intent}&propertyType=${pType}&provisionsfrei=${settings.provisionsfrei ? 'true' : 'false'}&radius=${radiusConfig}`);
+        const minRoomsConfig = settings.minRooms || 1;
+        const res = await fetch(`/api/properties?locations=${locationsQuery}&portals=${portalsQuery}&intent=${settings.intent}&propertyType=${pType}&provisionsfrei=${settings.provisionsfrei ? 'true' : 'false'}&radius=${radiusConfig}&minRooms=${minRoomsConfig}`);
         if (!res.ok) {
            throw new Error(await res.text());
         }
@@ -70,8 +71,8 @@ export default function Home() {
           // If a max price is set below the 2Mil edge case, rule out if strictly higher.
           if (settings.maxPrice < 2000000 && p.price > 0 && p.price > settings.maxPrice) return false;
           
-          // Tolerant minRooms check: Wenn die Räume nicht parsebar waren (null) wie bei ImmoScout/Regional, filtern wir sie absichtlich NICHT raus.
-          if (settings.minRooms > 1 && p.rooms !== null && p.rooms < settings.minRooms) return false;
+          // If rooms are successfully parsed we strictly filter. If strictly smaller, we drop it!
+          if (settings.minRooms && settings.minRooms > 1 && p.rooms !== null && p.rooms < settings.minRooms) return false;
           
           // Tolerant minSpace check: If user cares (>10), drop ONLY if we are sure it's smaller. Null passes.
           if (settings.minSpace > 10 && p.livingSpace !== null && p.livingSpace < settings.minSpace) return false;
