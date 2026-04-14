@@ -20,8 +20,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSwipe, i
   const [imageIndex, setImageIndex] = useState(0);
   const [loadingImages, setLoadingImages] = useState(false);
 
-  const handleNextImage = async () => {
-    if (Math.abs(x.get()) > 10) return; // Ignore if user is dragging
+  const handleNextImage = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (imageIndex < images.length - 1) {
       setImageIndex(prev => prev + 1);
       return;
@@ -49,8 +49,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSwipe, i
     }
   };
 
-  const handlePrevImage = () => {
-    if (Math.abs(x.get()) > 10) return; // Ignore if user is dragging
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (imageIndex > 0) setImageIndex(prev => prev - 1);
   };
 
@@ -146,11 +146,17 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onSwipe, i
 
         <img src={images[imageIndex]} alt={property.title} className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300" draggable={false} />
         
-        {/* Image Navigation Overlays (using onPointerUp to allow bubbling) */}
-        <div className="absolute inset-0 z-30 flex">
-           <div className="w-1/2 h-full" onPointerUp={handlePrevImage} />
-           <div className="w-1/2 h-full" onPointerUp={handleNextImage} />
-        </div>
+        {/* Explicit visible Navigation Buttons to keep the rest of the image free for drag gestures */}
+        {images.length > 1 && (
+          <>
+            <button onPointerDown={(e) => e.stopPropagation()} onClick={handlePrevImage} className="absolute left-3 top-[35%] transform -translate-y-1/2 z-30 p-2.5 rounded-full bg-black/40 backdrop-blur-md text-white/80 hover:text-white hover:bg-black/80 shadow-xl pointer-events-auto active:scale-95 transition-all">
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button onPointerDown={(e) => e.stopPropagation()} onClick={handleNextImage} className="absolute right-3 top-[35%] transform -translate-y-1/2 z-30 p-2.5 rounded-full bg-black/40 backdrop-blur-md text-white/80 hover:text-white hover:bg-black/80 shadow-xl pointer-events-auto active:scale-95 transition-all">
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </>
+        )}
 
 
         
