@@ -379,9 +379,25 @@ export async function GET(request: Request) {
     }
 
     if (n8nSuccess && data && data.properties) {
+      let n8nProps: Property[] = data.properties;
+      n8nProps = n8nProps.filter(p => {
+         if (!p.title) return false;
+         const lowerTitle = p.title.toLowerCase();
+         if (propertyType === 'haus') {
+            if (lowerTitle.includes('wohnung') && !lowerTitle.includes('haus')) return false;
+            if (lowerTitle.includes('apartment') || lowerTitle.includes('etagenwohnung')) return false;
+         } else if (propertyType === 'wohnung') {
+            if (lowerTitle.includes('einfamilienhaus') || lowerTitle.includes('reihenhaus') || lowerTitle.includes('doppelhaushälfte')) return false;
+            if (lowerTitle.includes('haus ') && !lowerTitle.includes('mehrfamilienhaus')) return false;
+         } else if (propertyType === 'grundstueck') {
+            if (lowerTitle.includes('wohnung') || lowerTitle.includes(' haus ')) return false;
+         }
+         return true;
+      });
+
       return NextResponse.json({ 
-        properties: data.properties, 
-        meta: { locations, total: data.properties.length, viaNode: 'n8n' } 
+        properties: n8nProps, 
+        meta: { locations, total: n8nProps.length, viaNode: 'n8n' } 
       });
     }
 
@@ -409,6 +425,26 @@ export async function GET(request: Request) {
 
     const results = await Promise.all(promises);
     let fallbackProperties: Property[] = results.reduce((acc, val) => acc.concat(val), []);
+    
+    // Rigoroser Reißwolf-Filter zur Behebung von Such-Vermischungen
+    // Crawler portieren oft falsch formatierte Inserate über die Portale hinweg.
+    fallbackProperties = fallbackProperties.filter(p => {
+       const lowerTitle = p.title.toLowerCase();
+       if (propertyType === 'haus') {
+          // Keine reinen Wohnungen anzeigen, falls nach Haus gesucht wird
+          if (lowerTitle.includes('wohnung') && !lowerTitle.includes('haus')) return false;
+          if (lowerTitle.includes('apartment') || lowerTitle.includes('etagenwohnung')) return false;
+       } else if (propertyType === 'wohnung') {
+          // Keine Häuser anzeigen, falls nach Wohnungen gesucht wird
+          if (lowerTitle.includes('einfamilienhaus') || lowerTitle.includes('reihenhaus') || lowerTitle.includes('doppelhaushälfte')) return false;
+          if (lowerTitle.includes('haus ') && !lowerTitle.includes('mehrfamilienhaus')) return false;
+       } else if (propertyType === 'grundstueck') {
+          // Keine Häuser/Wohnungen
+          if (lowerTitle.includes('wohnung') || lowerTitle.includes(' haus ')) return false;
+       }
+       return true;
+    });
+
     fallbackProperties = fallbackProperties.sort(() => Math.random() - 0.5);
 
     // Provide generic beautiful filler interior images for the galleries 

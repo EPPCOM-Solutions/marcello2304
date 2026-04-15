@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserProfile } from '../types/property';
-import { ShieldCheck, Save } from 'lucide-react';
+import { ShieldCheck, Save, User, Lock, LogOut } from 'lucide-react';
+import { AdminPanel } from './AdminPanel';
 
 interface Props {
   profile: UserProfile;
@@ -12,6 +13,34 @@ interface Props {
 export const ProfileVault: React.FC<Props> = ({ profile, setProfile }) => {
   const [saved, setSaved] = useState(false);
   const [testingPortals, setTestingPortals] = useState<Record<string, 'testing' | 'success' | 'failed'>>({});
+  const [authData, setAuthData] = useState<{email: string, role: string} | null>(null);
+
+  useEffect(() => {
+     fetch('/api/auth/me').then(res => res.json()).then(data => {
+        if (data.authenticated) setAuthData(data.user);
+     }).catch(e => console.error(e));
+  }, []);
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/login';
+  };
+
+  const handleChangePassword = async () => {
+    const pw = prompt('Dein neues persönliches Passwort:');
+    if (!pw) return;
+    try {
+      const res = await fetch('/api/auth/me', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pw })
+      });
+      if (res.ok) alert('Passwort erfolgreich geändert.');
+      else alert('Fehler beim Ändern');
+    } catch(e) {
+      alert('Netzwerkfehler');
+    }
+  };
 
   const handleTestPortal = async (portal: string, auth: any) => {
     if (!auth.username || !auth.password) {
@@ -57,9 +86,32 @@ export const ProfileVault: React.FC<Props> = ({ profile, setProfile }) => {
     <div className="absolute inset-0 z-50 bg-stone-950/80 backdrop-blur-xl flex flex-col">
       <div className="p-6 flex-1 overflow-y-auto hide-scrollbar pb-24">
         <div className="flex items-center justify-between mb-6 pt-4">
-          <h1 className="text-3xl font-black text-white">Tresor</h1>
-          <ShieldCheck className="w-8 h-8 text-orange-400" />
+          <h1 className="text-3xl font-black text-white flex items-center gap-3">
+             <User className="w-8 h-8 text-orange-400" /> Profil & Einstellungen
+          </h1>
+          <button onClick={handleLogout} className="p-2.5 bg-stone-800 hover:bg-stone-700 rounded-full text-stone-300 transition-colors" title="Logout">
+            <LogOut className="w-5 h-5" />
+          </button>
         </div>
+
+        {authData?.role === 'admin' && <AdminPanel />}
+
+        {authData && (
+          <div className="bg-stone-900 border border-stone-800 p-4 rounded-2xl mb-8 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+               <div className="w-10 h-10 bg-orange-500/20 rounded-full flex items-center justify-center">
+                 <Lock className="w-5 h-5 text-orange-400" />
+               </div>
+               <div>
+                  <h3 className="text-white text-sm font-bold">Zutritts-Account</h3>
+                  <p className="text-stone-400 text-xs">{authData.email}</p>
+               </div>
+            </div>
+            <button onClick={handleChangePassword} className="px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-bold rounded-lg border border-stone-700 transition-colors">
+              Passwort ändern
+            </button>
+          </div>
+        )}
 
         <div className="bg-orange-900/10 border border-orange-500/20 p-4 rounded-2xl mb-8 flex gap-4">
           <ShieldCheck className="w-6 h-6 text-orange-400 shrink-0" />
