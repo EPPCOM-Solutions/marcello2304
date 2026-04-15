@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { SearchSettings, SearchIntent, PropertyType } from '../types/property';
-import { Settings, X, Info, Save } from 'lucide-react';
+import { Settings, X, Info, Save, Bell } from 'lucide-react';
 
 interface Props {
   settings: SearchSettings;
@@ -26,6 +26,24 @@ export const SearchSettingsDialog: React.FC<Props> = ({ settings, setSettings, o
     
     setSettings({ ...localSettings, locations: finalLocations });
     onClose();
+  };
+
+  const handleSaveAlert = async () => {
+    try {
+      const res = await fetch('/api/auth/searches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings: localSettings })
+      });
+      if (res.ok) {
+        alert('Such-Alert erfolgreich gespeichert! Du wirst per E-Mail informiert.');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Fehler beim Speichern des Alerts.');
+      }
+    } catch (e) {
+      alert('Netzwerkfehler');
+    }
   };
 
   const addLocation = () => {
@@ -223,7 +241,10 @@ export const SearchSettingsDialog: React.FC<Props> = ({ settings, setSettings, o
       </div>
       </div>
       
-      <div className="p-6 bg-stone-950 border-t border-stone-800 shrink-0">
+      <div className="p-6 bg-stone-950 border-t border-stone-800 shrink-0 space-y-3">
+        <button onClick={handleSaveAlert} className="bg-stone-800 hover:bg-stone-700 text-orange-400 font-bold p-3 rounded-xl w-full flex items-center justify-center gap-2 border border-stone-700 transition-all text-sm">
+          <Bell className="w-4 h-4" /> Suche als E-Mail Alert abonnieren
+        </button>
         <button onClick={handleSave} className="bg-orange-500 hover:bg-orange-400 text-stone-950 font-bold text-lg p-4 rounded-2xl w-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all">
           <Save className="w-5 h-5" /> Speichern & Suchen
         </button>

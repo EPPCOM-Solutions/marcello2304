@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { UserProfile } from '../types/property';
-import { ShieldCheck, Save, User, Lock, LogOut } from 'lucide-react';
+import { ShieldCheck, Save, User, Lock, LogOut, Bell, Trash2 } from 'lucide-react';
 import { AdminPanel } from './AdminPanel';
+import { SavedSearch } from '../lib/searches';
 
 interface Props {
   profile: UserProfile;
@@ -14,12 +15,33 @@ export const ProfileVault: React.FC<Props> = ({ profile, setProfile }) => {
   const [saved, setSaved] = useState(false);
   const [testingPortals, setTestingPortals] = useState<Record<string, 'testing' | 'success' | 'failed'>>({});
   const [authData, setAuthData] = useState<{email: string, role: string} | null>(null);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
 
   useEffect(() => {
      fetch('/api/auth/me').then(res => res.json()).then(data => {
         if (data.authenticated) setAuthData(data.user);
      }).catch(e => console.error(e));
+     
+     fetchSavedSearches();
   }, []);
+
+  const fetchSavedSearches = async () => {
+    try {
+      const res = await fetch('/api/auth/searches');
+      if (res.ok) {
+        const data = await res.json();
+        setSavedSearches(data.searches || []);
+      }
+    } catch(e) {}
+  };
+
+  const handleDeleteSearch = async (id: number) => {
+    if(!confirm('Diesen Such-Alert wirklich löschen?')) return;
+    try {
+      const res = await fetch(`/api/auth/searches?id=${id}`, { method: 'DELETE' });
+      if (res.ok) fetchSavedSearches();
+    } catch(e) {}
+  };
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -110,6 +132,27 @@ export const ProfileVault: React.FC<Props> = ({ profile, setProfile }) => {
             <button onClick={handleChangePassword} className="px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-bold rounded-lg border border-stone-700 transition-colors">
               Passwort ändern
             </button>
+          </div>
+        )}
+
+        {savedSearches.length > 0 && (
+          <div className="bg-stone-900 border border-stone-800 p-5 rounded-2xl mb-8">
+            <h3 className="text-white text-sm font-bold flex items-center gap-2 mb-4">
+              <Bell className="w-4 h-4 text-orange-400" /> Aktive Such-Alerts
+            </h3>
+            <div className="space-y-3">
+              {savedSearches.map(search => (
+                <div key={search.id} className="flex items-center justify-between p-3 bg-stone-950 rounded-xl border border-stone-800">
+                  <div className="flex-1">
+                    <p className="text-stone-200 text-sm font-medium">{search.name}</p>
+                    <p className="text-stone-500 text-[10px] mt-1">Geprüft: {new Date(search.last_check).toLocaleString()}</p>
+                  </div>
+                  <button onClick={() => handleDeleteSearch(search.id)} className="p-2 text-stone-500 hover:text-red-400 transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

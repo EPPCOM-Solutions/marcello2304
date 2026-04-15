@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { PropertyCard } from '../components/PropertyCard';
+import { PropertyCardSkeleton } from '../components/PropertyCardSkeleton';
 import { SearchSettingsDialog } from '../components/SearchSettingsDialog';
 import { BottomNav } from '../components/BottomNav';
 import { ProfileVault } from '../components/ProfileVault';
@@ -195,10 +196,12 @@ export default function Home() {
   const renderDiscover = () => {
     if (isLoading) {
       return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center pb-20 text-center px-8">
-          <div className="w-16 h-16 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin mb-6"></div>
-           <h2 className="text-xl font-bold text-white mb-2">Scanne Portale...</h2>
-           <p className="text-stone-400 text-sm">Suche nach Inhalten in {settings.locations?.join(', ') || '...'} (Live)</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+           <PropertyCardSkeleton />
+           <div className="absolute bottom-32 left-0 right-0 text-center animate-pulse">
+              <h2 className="text-xl font-bold text-white mb-2">Portal-Scan aktiv...</h2>
+              <p className="text-stone-400 text-sm px-10">Suche in {settings.locations?.join(', ') || '...'} (Live)</p>
+           </div>
         </div>
       );
     }

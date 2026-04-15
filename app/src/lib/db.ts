@@ -44,7 +44,19 @@ export async function initDb() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log("DB Init Check: users table verified");
+    
+    await query(`
+      CREATE TABLE IF NOT EXISTS livingmatch_searches (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES livingmatch_users(id) ON DELETE CASCADE,
+        name VARCHAR(255),
+        filter_settings JSONB NOT NULL,
+        last_check TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("DB Init Check: users and searches tables verified");
   } catch (err) {
     console.error("DB Init Error:", err);
   }
